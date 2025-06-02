@@ -2,4 +2,26 @@
 - Dash 
 - Chefes com padrões
 - Cutscenes que vão ser trechos do anime
-
+- inimigos renascem em um ponto da fase
+- música de fundo 
+- sons para os inimigos
+- menu do personagem para ver vida e trocar de arma
+- pegar uma nova arma depois de derrotar o vilão
+- animação de derrota do vilão
+- escudo?
+- o personagem que atira então não seria considerado um objeto arma?
+- carregar tiro igual megaman ao inves de ficar disparando
+V fazer menu que dá para trocar as teclas dos botões
+- fazer uma parede atravessável
+- fazer um easter egg
+- um item que é uma bota e dá pulo duplo?
+- escalar parede igual megaman X
+- fazer carregar informações
+- menu de seleção que o olho do Shinji acompanha
+- os inimigos dropam randomicamente itens de cura (dificuldade pode gerenciar a probabilidade)
+- washing machine heart 8 bits
+- Oração de Travessos em 8 bits
+- a barra de vida tem a cara do shinji do lado, tem a vida e tem a arma (me livra do menu do personagem)
+V poder jogar nas setinhas e no WASD       
+- A opção de Salvar Jogo tem na tela de seleção de fases
+- No menu oções alterar a dificuldade do jogo. O fator dificuldade vai multiplicar a vida dos inimigos, dano, e diminuir a probabilidade de drop de item

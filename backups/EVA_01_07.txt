@@ -1,0 +1,6 @@
+Foi feita a implementação da:
+TELA PRINCIPAL
+OPÇÕES
+SAIR
+
+O COMEÇAR JOGO e CARREGAR JOGO estão funcionando como SAIR
