@@ -1,0 +1,9 @@
+Tela principal
+Opção
+Seleção de fase
+Sprites EVA
+código até que bem estruturado
+
+Próximos passos:
+Salvar e carregar jogo
+Fase 1

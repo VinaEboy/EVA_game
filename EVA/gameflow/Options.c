@@ -12,8 +12,8 @@
 options *options_create() {
     options *options_info = (options *) malloc(sizeof(options));
     if (!options_info) return NULL;
-    options_info->SHOT_selected = 1;
-    options_info->SHOT_color = al_map_rgb(184, 134, 11);
+    options_info->SHOT_selected = 0;
+    options_info->SHOT_color = al_map_rgb(255, 255, 255);
     options_info->JUMP_selected = 0;
     options_info->JUMP_color = al_map_rgb(255, 255, 255);
     options_info->LEFT_selected = 0;
@@ -28,8 +28,8 @@ options *options_create() {
     options_info->CONFIRM_color = al_map_rgb(255, 255, 255);    
     options_info->PAUSE_selected = 0;   
     options_info->PAUSE_color = al_map_rgb(255, 255, 255);    
-    options_info->BACK_selected = 0;
-    options_info->BACK_color = al_map_rgb(255, 255, 255);    
+    options_info->BACK_selected = 1;
+    options_info->BACK_color = al_map_rgb(184, 134, 11);    
     options_info->key_to_switch = 0; // vai falar se está na etapa de trocar o valor de uma chave
     options_info->timer = 0;
     return options_info;
@@ -48,7 +48,7 @@ void start_options(game_state *state, options **options_info ) {
 void show_options(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, options *options_info, int X_SCREEN, int Y_SCREEN) {
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
-
+    
 
     if (event->type == ALLEGRO_EVENT_KEY_UP) {
         if (options_info->key_to_switch) 

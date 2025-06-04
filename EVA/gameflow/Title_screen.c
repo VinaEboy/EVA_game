@@ -25,7 +25,9 @@ title_screen *title_screen_info_create() {
     title_screen_info->options_color = al_map_rgb(255, 255, 255);     
 
     title_screen_info->exit_selected = 0;
-    title_screen_info->exit_color = al_map_rgb(255, 255, 255);     
+    title_screen_info->exit_color = al_map_rgb(255, 255, 255);  
+    
+    title_screen_info->title_screen_exit = 0;
 
     return title_screen_info;
 }
@@ -49,26 +51,14 @@ void start_title_screen(game_state *state, ALLEGRO_BITMAP **title_screen_image, 
 void show_title_screen(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_BITMAP *title_screen_image, 
                         title_screen *title_screen_info, int X_SCREEN, int Y_SCREEN) {
     
-    // Limpa a tela com preto
     al_clear_to_color(al_map_rgb(0, 0, 0));
 
-    // largura e altura originais da imagem
     int img_width = al_get_bitmap_width(title_screen_image);
     int img_height = al_get_bitmap_height(title_screen_image);
 
-    // largura e altura da tela cheia
-    int screen_width = al_get_display_width(disp);
-    int screen_height = al_get_display_height(disp);
 
     // desenha a imagem escalada para preencher a tela inteira
-    al_draw_scaled_bitmap(
-        title_screen_image,
-        0, 0,                     // origem na imagem
-        img_width, img_height,    // tamanho da imagem original
-        0, 0,                     // posição na tela
-        screen_width, screen_height, // tamanho na tela
-        0                         // flags
-    );
+    al_draw_scaled_bitmap(title_screen_image,0, 0,img_width, img_height,0, 0,X_SCREEN, Y_SCREEN,0);
 
     if (event->type == ALLEGRO_EVENT_KEY_UP) {
         if (event->keyboard.keycode == state->controls->DOWN)
@@ -81,8 +71,9 @@ void show_title_screen(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
 
     title_screen_draw_text(title_screen_info, font, X_SCREEN, Y_SCREEN);
 
-    // Atualiza o display para mostrar a imagem
     al_flip_display();
+
+    if (title_screen_info->title_screen_exit) exit_title_screen(state, title_screen_info,title_screen_image);
 }
 
 
@@ -128,23 +119,22 @@ void title_screen_up_move(title_screen *title_screen_info ) {
 }
 
 void title_screen_confirm(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image) {
-    state->title_screen = 0;
     if (title_screen_info->exit_selected) {
         state->running = 0;
-        title_exit(state, title_screen_info,title_screen_image);
+        title_screen_info->title_screen_exit = 1;
     }
     else if(title_screen_info->options_selected) {
-        state->title_screen = 1; //não dá exit porque opções é como se fosse um pause da fase
+        //não dá exit porque opções é como se fosse um pause da fase
         state->options = 1;
     }
     else if(title_screen_info->load_game_selected) {
         state->load_game = 1;
-        title_exit(state, title_screen_info,title_screen_image);
+        title_screen_info->title_screen_exit = 1;
     }
     
     else if(title_screen_info->new_game_selected) {
         state->level_select = 1;
-        title_exit(state,title_screen_info,title_screen_image);
+        title_screen_info->title_screen_exit = 1;
     }
 }
 
@@ -166,7 +156,8 @@ void title_screen_draw_text(title_screen *title_screen_info, ALLEGRO_FONT *font,
 }
 
 
-void title_exit(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image) {
+void exit_title_screen(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image) {
+    state->title_screen = 0;
     state->title_screen_started = 0;
     free(title_screen_info);
     al_destroy_bitmap(title_screen_image);

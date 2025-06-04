@@ -1,0 +1,15 @@
+Mandar email para os professores sobre minhas implementações que valem pontos extras
+
+- Implementar o "Carregar Jogo" e "Salvar Jogo" (OPEN FILE)
+
+Com isso só vai faltar fazer a fase e o PAUSE
+
+Uma struct para salvar o jogo "game_data":
+- Quando começa o jogo ela começa default. Salvar o "game_state"
+- Antes de salvar o jogo, mudar o game_state->save_game = 0 e game_state->stage_select = 1
+para começar na tela de seleção quando carregar
+- Gravar todo o game_state nela
+- Dá para salvar ela e carregar ela (se carregar/salvar um jogo, o teclado muda)
+Colocar o controls nessa outra struct
+- Guardar vida absoluta, fases concluidas,  
+- Tempo de jogo

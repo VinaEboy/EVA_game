@@ -1,0 +1,21 @@
+#include "Assets.h"
+
+game_assets *game_assets_create() {
+    game_assets *assets = malloc(sizeof(game_assets));
+    if (!assets) return NULL;
+
+    assets->title_screen_image = NULL;
+    assets->title_screen_info = NULL;
+    assets->options_info = NULL;
+    assets->level_select_image = NULL;
+    assets->level_select_info = NULL;
+    assets->pause_info = NULL;
+    assets->load_game_info = NULL;
+
+    return assets;
+}
+
+//ver depois certinho os free
+void game_assets_destroy(game_assets *assets) {
+    free(assets); 
+}

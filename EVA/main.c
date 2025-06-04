@@ -6,13 +6,14 @@
 #include <allegro5/allegro_ttf.h>
 #include "gameflow/Game_state.h"
 
-void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_TIMER *timer, ALLEGRO_EVENT_QUEUE *queue ) {
+void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_TIMER *timer, ALLEGRO_EVENT_QUEUE *queue, game_assets *assets ) {
 
 	if(state) game_state_destroy(state);
 	if(font) al_destroy_font(font);																																													
 	if(disp) al_destroy_display(disp);																																												
 	if(timer) al_destroy_timer(timer);																																												
-	if(queue) al_destroy_event_queue(queue);																																																																																						
+	if(queue) al_destroy_event_queue(queue);	
+	if(assets) game_assets_destroy(assets);																																																																																					
 }
 
 
@@ -41,59 +42,77 @@ int main(){
 
 	al_register_event_source(queue, al_get_keyboard_event_source());																																		
 	al_register_event_source(queue, al_get_display_event_source(disp));																																		
-	al_register_event_source(queue, al_get_timer_event_source(timer));																																		
+	al_register_event_source(queue, al_get_timer_event_source(timer));
+
+	//etapa que o jogo está na main
 	game_state *state = game_state_create();
+	
+	//ponteiros que vão ser utilizados no jogo, como imagens e informações das etapas
+	game_assets *assets = game_assets_create();
 	if (!state) {
-		destroy(state,font,disp,timer,queue);
+		destroy(state,font,disp,timer,queue,assets);
 		return 1; 
 	}
 
 	ALLEGRO_EVENT event;																																													
 	al_start_timer(timer);																																													
 
-	//ponteiros que vão ser utilizados no jogo
-	ALLEGRO_BITMAP *title_screen_image = NULL; //para não dar warning de usar var não inicializada
-	title_screen *title_screen_info = NULL;
-	options *options_info = NULL;
-
 
 	while(state->running){																																																
 		al_wait_for_event(queue, &event);																																									
 
 		if (state->options) {
-			if (!state->options_started)
-				start_options(state, &options_info);
+			if (!state->options_started) 
+				start_options(state, &assets->options_info);
 
-			show_options(&event,state,font,disp,options_info,X_SCREEN,Y_SCREEN);
+			show_options(&event,state,font,disp,assets->options_info,X_SCREEN,Y_SCREEN);
+		}
+
+		else if (state->pause) {
+			if (!state->pause_started)
+				start_pause( );
+
+			show_pause ( );
+		}
+
+		else if (state->save_game) {
+			if (!state->save_game_started)
+				start_save_game( );
+
+			show_save_game( );
 		}
 
 		else if (state->title_screen) {
 			if (!state->title_screen_started) 
-				start_title_screen(state, &title_screen_image,&title_screen_info);
+				start_title_screen(state, &assets->title_screen_image,&assets->title_screen_info);
 			
-			show_title_screen(&event, state, font, disp, title_screen_image,title_screen_info, X_SCREEN, Y_SCREEN);
+			show_title_screen(&event, state, font, disp, assets->title_screen_image,assets->title_screen_info, X_SCREEN, Y_SCREEN);
 		}
 
 		else if (state->level_select) {
-			state->level_select = 0;
-			state->level_sachiel = 1;
+			if (!state->level_select_started)
+				start_level_select(state, &assets->level_select_info, &assets->level_select_image);
+
+			show_level_select(&event, state, font, disp, assets->level_select_image, assets->level_select_info, X_SCREEN, Y_SCREEN);
 		}
 
 		else if (state->load_game) {
-			state->running = 0;
+			if (!state->load_game_started)
+				start_load_game( );
+
+			show_load_game( );
 		}
 
-		else if (state->level_sachiel) {
-			state->running = 0;
-			if (!state->level_sachiel_started)
-				start_level_sachiel( );
+		else if (state->level_1) {
+			if (!state->level_1_started)
+				start_level_1( );
 
-			show_level_sachiel( );
+			show_level_1 ( ) ;
 		}
 
-		
 	}
 
-	destroy(state,font,disp,timer,queue);
+
+	destroy(state,font,disp,timer,queue,assets);
 	return 0;
 }

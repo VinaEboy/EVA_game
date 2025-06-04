@@ -1,10 +1,20 @@
 #ifndef __GAME_STATE__
 #define __GAME_STATE__
 
+#include "Assets.h"
 #include "Title_screen.h"
+#include "Level_select.h"
 #include "Options.h"
-#include "Level_Sachiel.h"
+#include "Level_1.h"
+#include "Pause.h"
+#include "Save_game.h"
+#include "Load_game.h"
 #include <allegro5/allegro.h>
+
+#define DIFFICULTY_EASY 0.75
+#define DIFFICULTY_MEDIUM 1.0
+#define DIFFICULTY_HARD 1.25
+
 
 typedef struct buttom_map {
     int SHOT;
@@ -17,6 +27,24 @@ typedef struct buttom_map {
     int PAUSE;    
 } buttom_map;
 
+typedef struct player_data {
+    int Lifes;
+    int Hearts; //extensão da barra de vida original
+    float Difficulty; 
+
+    unsigned char Level_1_completed;
+    unsigned char Level_2_completed;
+    unsigned char Level_3_completed;
+    unsigned char Level_4_completed;
+    unsigned char Level_5_completed;
+    unsigned char Level_6_completed;
+    unsigned char Level_7_completed;
+    unsigned char Level_8_completed;
+
+    double start_time;  //informações úteis para calcular o tempo de jogo
+    double total_play_time;
+
+} player_data;
 
 typedef struct game_state {
     unsigned char running;
@@ -24,13 +52,18 @@ typedef struct game_state {
     unsigned char title_screen_started;
     unsigned char level_select;
     unsigned char level_select_started;
-    unsigned char level_sachiel;
-    unsigned char level_sachiel_started;
+    unsigned char level_1;
+    unsigned char level_1_started;
     unsigned char load_game;
     unsigned char load_game_started;
     unsigned char options;
     unsigned char options_started;
+    unsigned char pause;
+    unsigned char pause_started;
+    unsigned char save_game;
+    unsigned char save_game_started;
     buttom_map *controls;
+    player_data *player_progress;
 } game_state;
 
 
@@ -113,6 +146,6 @@ static const key_map_t key_map[] = {
 
 
 game_state *game_state_create();
-void game_state_destroy();
+void game_state_destroy(game_state *state);
 
 #endif
