@@ -22,7 +22,7 @@ save_game *save_game_info_create( ) {
     return save_game_info;
 }
 
-void start_save_game (game_state *state, ALLEGRO_BITMAP **save_game_image, save_game **save_game_info) {
+void start_save_game (game_state *state, save_game **save_game_info, ALLEGRO_BITMAP **save_game_image) {
     *save_game_image = al_load_bitmap("images/save_or_load.png");
     if (!*save_game_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
@@ -102,17 +102,17 @@ void save_game_right_move(save_game *save_game_info ) {
 
 void save_game_confirm(game_state *state, save_game *save_game_info, ALLEGRO_BITMAP *save_game_image) {
     if (save_game_info->slot_1_selected) {
-        save_game();
+        save_game_slot();
     } else if (save_game_info->slot_2_selected) {
-        save_game();
+        save_game_slot();
     } else if (save_game_info->slot_3_selected) {
-        save_game();
+        save_game_slot();
     } else if (save_game_info->return_to_stage_select_selected) {
-        state->return_to_stage_select = 1;
+        save_game_info->return_to_stage_select = 1;
     }
 }
 
-void save_game() {
+void save_game_slot() {
     return ;
 }
 

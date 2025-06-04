@@ -11,7 +11,8 @@ game_assets *game_assets_create() {
     assets->level_select_info = NULL;
     assets->pause_info = NULL;
     assets->load_game_info = NULL;
-
+    assets->save_game_info = NULL;
+    assets->save_game_image = NULL;
     return assets;
 }
 

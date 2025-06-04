@@ -22,7 +22,7 @@ typedef struct title_screen {
 
 title_screen *title_screen_info_create();
 
-void start_title_screen(game_state *state, ALLEGRO_BITMAP** title_screen_image, title_screen **title_screen_info  );
+void start_title_screen(game_state *state, title_screen **title_screen_info, ALLEGRO_BITMAP** title_screen_image );
 
 void show_title_screen(ALLEGRO_EVENT *event,game_state *state,ALLEGRO_FONT *font,ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP* title_screen_image, title_screen *title_screen_info,
                        int X_SCREEN, int Y_SCREEN );

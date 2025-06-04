@@ -77,14 +77,14 @@ int main(){
 
 		else if (state->save_game) {
 			if (!state->save_game_started)
-				start_save_game( );
+				start_save_game(state, &assets->save_game_info, &assets->save_game_image );
 
 			show_save_game( );
 		}
 
 		else if (state->title_screen) {
 			if (!state->title_screen_started) 
-				start_title_screen(state, &assets->title_screen_image,&assets->title_screen_info);
+				start_title_screen(state,&assets->title_screen_info,&assets->title_screen_image);
 			
 			show_title_screen(&event, state, font, disp, assets->title_screen_image,assets->title_screen_info, X_SCREEN, Y_SCREEN);
 		}

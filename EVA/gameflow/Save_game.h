@@ -22,7 +22,7 @@ typedef struct save_game {
 } save_game;
 
 save_game *save_game_info_create();
-void start_save_game (game_state *state, ALLEGRO_BITMAP **save_game_image, save_game **save_game_info);
+void start_save_game (game_state *state, save_game **save_game_info, ALLEGRO_BITMAP **save_game_image);
 void show_save_game();
 
 //aux
@@ -31,5 +31,5 @@ void save_game_up_move(save_game *save_game_info );
 void save_game_left_move(save_game *save_game_info );
 void save_game_right_move(save_game *save_game_info );
 void save_game_confirm(game_state *state, save_game *save_game_info, ALLEGRO_BITMAP *save_game_image);
-void save_game();
+void save_game_slot();
 #endif

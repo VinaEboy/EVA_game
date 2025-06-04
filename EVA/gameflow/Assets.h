@@ -17,6 +17,7 @@ typedef struct options options;
 typedef struct level_select level_select;
 typedef struct pause_game pause_game;
 typedef struct load_game load_game;
+typedef struct save_game save_game;
 typedef struct level_1 level_1;
 
 typedef struct game_assets {
@@ -26,6 +27,8 @@ typedef struct game_assets {
     ALLEGRO_BITMAP *level_select_image;
     level_select *level_select_info;
     pause_game *pause_info;
+    save_game *save_game_info;
+    ALLEGRO_BITMAP *save_game_image;
     load_game *load_game_info;
     level_1 *level_1_info;
     // outros ponteiros futuros
