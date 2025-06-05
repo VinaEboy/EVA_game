@@ -28,8 +28,10 @@ typedef struct game_assets {
     level_select *level_select_info;
     pause_game *pause_info;
     save_game *save_game_info;
+    ALLEGRO_BITMAP *default_slot_image;
     ALLEGRO_BITMAP *save_game_image;
     load_game *load_game_info;
+    ALLEGRO_BITMAP *load_game_image;
     level_1 *level_1_info;
     // outros ponteiros futuros
 } game_assets;

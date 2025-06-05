@@ -12,7 +12,10 @@ game_assets *game_assets_create() {
     assets->pause_info = NULL;
     assets->load_game_info = NULL;
     assets->save_game_info = NULL;
+    assets->default_slot_image = NULL;
     assets->save_game_image = NULL;
+    assets->load_game_info = NULL;
+    assets->load_game_image = NULL;
     return assets;
 }
 

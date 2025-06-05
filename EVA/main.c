@@ -77,9 +77,9 @@ int main(){
 
 		else if (state->save_game) {
 			if (!state->save_game_started)
-				start_save_game(state, &assets->save_game_info, &assets->save_game_image );
+				start_save_game(state, &assets->save_game_info, &assets->save_game_image, &assets->default_slot_image );
 
-			show_save_game( );
+			show_save_game(&event, state, font, disp, assets->save_game_image, assets->default_slot_image, assets->save_game_info, X_SCREEN, Y_SCREEN );
 		}
 
 		else if (state->title_screen) {
@@ -98,9 +98,9 @@ int main(){
 
 		else if (state->load_game) {
 			if (!state->load_game_started)
-				start_load_game( );
+				start_load_game( state, &assets->load_game_info, &assets->load_game_image, &assets->default_slot_image);
 
-			show_load_game( );
+			show_load_game(&event, state, font, disp, assets->load_game_image, assets->default_slot_image, assets->load_game_info, X_SCREEN, Y_SCREEN);
 		}
 
 		else if (state->level_1) {
