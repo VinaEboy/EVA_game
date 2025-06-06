@@ -242,11 +242,10 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
     if (load_game_info->slot_2_selected || load_game_info->choose_slot_2_selected) {
         al_draw_text(font,load_game_info->choose_slot_2_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
 
-        if (load_game_info->choose_slot_2_selected) 
-            if (load_game_info->timer > 20)
-                        al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
+        if (load_game_info->choose_slot_2_selected && load_game_info->timer > 20) 
+            al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
         
-        if (load_game_info->slot_2_selected && !load_game_info->return_to_title_screen_selected)
+        if (load_game_info->slot_2_selected && !load_game_info->return_to_title_screen_selected && load_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
@@ -264,11 +263,10 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
     if (load_game_info->slot_3_selected || load_game_info->choose_slot_3_selected) {
         al_draw_text(font,load_game_info->choose_slot_3_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
 
-        if (load_game_info->choose_slot_3_selected) 
-            if (load_game_info->timer > 20)
-                        al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
+        if (load_game_info->choose_slot_3_selected && load_game_info->timer > 20) 
+            al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
         
-        if (load_game_info->slot_3_selected && !load_game_info->return_to_title_screen_selected)
+        if (load_game_info->slot_3_selected && !load_game_info->return_to_title_screen_selected && load_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 

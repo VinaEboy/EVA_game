@@ -214,9 +214,8 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
     if (save_game_info->slot_1_selected || save_game_info->choose_slot_1_selected) {
         al_draw_text(font,save_game_info->choose_slot_1_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 1 ->");
         
-        if (save_game_info->choose_slot_1_selected) 
-            if (save_game_info->timer > 20)
-                        al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 1 ->");
+        if (save_game_info->choose_slot_1_selected && save_game_info->timer > 20) 
+            al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 1 ->");
         
         if (save_game_info->slot_1_selected && !save_game_info->return_to_stage_select_selected && save_game_info->timer < 20) 
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
@@ -236,11 +235,10 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
     if (save_game_info->slot_2_selected || save_game_info->choose_slot_2_selected) {
         al_draw_text(font,save_game_info->choose_slot_2_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
 
-        if (save_game_info->choose_slot_2_selected) 
-            if (save_game_info->timer > 20)
-                        al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
+        if (save_game_info->choose_slot_2_selected && save_game_info->timer > 20) 
+                al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
         
-        if (save_game_info->slot_2_selected && !save_game_info->return_to_stage_select_selected)
+        if (save_game_info->slot_2_selected && !save_game_info->return_to_stage_select_selected && save_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
@@ -258,11 +256,10 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
     if (save_game_info->slot_3_selected || save_game_info->choose_slot_3_selected) {
         al_draw_text(font,save_game_info->choose_slot_3_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
 
-        if (save_game_info->choose_slot_3_selected) 
-            if (save_game_info->timer > 20)
-                        al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
+        if (save_game_info->choose_slot_3_selected && save_game_info->timer > 20) 
+            al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
         
-        if (save_game_info->slot_3_selected && !save_game_info->return_to_stage_select_selected)
+        if (save_game_info->slot_3_selected && !save_game_info->return_to_stage_select_selected && save_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 

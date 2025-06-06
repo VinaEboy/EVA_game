@@ -105,9 +105,9 @@ int main(){
 
 		else if (state->level_1) {
 			if (!state->level_1_started)
-				start_level_1( );
+				start_level_1(state, &assets->level_1_info, assets->sprites );
 
-			show_level_1 ( ) ;
+			show_level_1 (&event, state, font, disp, assets->sprites, assets->level_1_info, X_SCREEN, Y_SCREEN);
 		}
 
 	}

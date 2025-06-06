@@ -16,10 +16,24 @@ game_assets *game_assets_create() {
     assets->save_game_image = NULL;
     assets->load_game_info = NULL;
     assets->load_game_image = NULL;
+
+    entities_sprites *sprites = malloc(sizeof(entities_sprites));
+    if (!sprites) {
+        free(assets);
+        return NULL;
+    }
+    sprites->EVA01_no_gun_run = NULL;
+    sprites->EVA01_gun_run = NULL;
+    sprites->level_1_background = NULL;
+    sprites->level_1_ground = NULL;
+
+    assets->sprites = sprites;
+
     return assets;
 }
 
 //ver depois certinho os free
 void game_assets_destroy(game_assets *assets) {
+    free(assets->sprites);
     free(assets); 
 }

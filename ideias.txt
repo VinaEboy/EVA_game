@@ -25,3 +25,4 @@ V fazer menu que dá para trocar as teclas dos botões
 V poder jogar nas setinhas e no WASD       
 - A opção de Salvar Jogo tem na tela de seleção de fases
 - No menu oções alterar a dificuldade do jogo. O fator dificuldade vai multiplicar a vida dos inimigos, dano, e diminuir a probabilidade de drop de item
+- blocos que aparecessem e desaparecem
