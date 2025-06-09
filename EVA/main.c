@@ -5,9 +5,9 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
 #include "gameflow/Game_state.h"
+#include "mechanics/Joystick.h"
 
 void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_TIMER *timer, ALLEGRO_EVENT_QUEUE *queue, game_assets *assets ) {
-
 	if(state) game_state_destroy(state);
 	if(font) al_destroy_font(font);																																													
 	if(disp) al_destroy_display(disp);																																												
@@ -105,11 +105,16 @@ int main(){
 
 		else if (state->level_1) {
 			if (!state->level_1_started)
-				start_level_1(state, &assets->level_1_info, assets->sprites );
+				start_level_1(state, &assets->level_1_info, assets->sprites, Y_SCREEN );
 
-			show_level_1 (&event, state, font, disp, assets->sprites, assets->level_1_info, X_SCREEN, Y_SCREEN);
+			joystick_handle(&event,state,assets->level_1_info->player);
+
+			if (event.type == ALLEGRO_EVENT_TIMER) {
+				joystick_update(state,assets->level_1_info->player);
+				level_1_update(assets->level_1_info, X_SCREEN); //atualiza as posições dos inimigos e gravidade
+				show_level_1 (&event, state, font, disp, assets->sprites, assets->level_1_info, X_SCREEN, Y_SCREEN);
+			}
 		}
-
 	}
 
 

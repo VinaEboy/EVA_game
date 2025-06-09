@@ -60,7 +60,7 @@ void show_title_screen(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
     // desenha a imagem escalada para preencher a tela inteira
     al_draw_scaled_bitmap(title_screen_image,0, 0,img_width, img_height,0, 0,X_SCREEN, Y_SCREEN,0);
 
-    if (event->type == ALLEGRO_EVENT_KEY_UP) {
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN) {
         if (event->keyboard.keycode == state->controls->DOWN)
             title_screen_down_move(title_screen_info);
         if (event->keyboard.keycode == state->controls->UP)

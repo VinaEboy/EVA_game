@@ -49,8 +49,9 @@ void show_options(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
     
+    if (event->type == ALLEGRO_EVENT_TIMER && options_info->key_to_switch) options_info->timer++;
 
-    if (event->type == ALLEGRO_EVENT_KEY_UP) {
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN) {
         if (options_info->key_to_switch) 
             options_key_switch (event, state, options_info);
         else {
@@ -64,7 +65,6 @@ void show_options(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
         
     }
 
-    if (options_info->key_to_switch) options_info->timer++;
 
     options_draw_text(state, font, options_info, X_SCREEN, Y_SCREEN);
 

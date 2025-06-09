@@ -1,3 +1,4 @@
+- Tela de Game Over: The End of Game
 - Fazer "warning" antes dos vilões
 - Dash 
 - Chefes com padrões

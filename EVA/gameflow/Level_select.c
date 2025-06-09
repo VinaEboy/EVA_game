@@ -55,7 +55,9 @@ void show_level_select(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
     // desenha a imagem escalada para preencher a tela inteira
     al_draw_scaled_bitmap(level_select_image,0, 0,img_width, img_height,0, 0,X_SCREEN, Y_SCREEN,0);
 
-    if (event->type == ALLEGRO_EVENT_KEY_UP) {
+    if (event->type == ALLEGRO_EVENT_TIMER) level_select_info->timer++;
+
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN) {
         level_select_info->timer = 0;
         if (event->keyboard.keycode == state->controls->LEFT)
             level_select_left_move(level_select_info);
@@ -285,7 +287,6 @@ void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select_info,
     al_draw_text(font, level_select_info->Back_title_screen_color, X_SCREEN/8, Y_SCREEN/2 - Y_SCREEN/48, ALLEGRO_ALIGN_CENTER,"Return to");
     al_draw_text(font, level_select_info->Back_title_screen_color, X_SCREEN/8, Y_SCREEN/2 + Y_SCREEN/48, ALLEGRO_ALIGN_CENTER,"title screen");
 
-    level_select_info->timer++;
     if (level_select_info->timer == 30) level_select_info->timer = 0;
     if(!level_select_info->Save_game_selected && !level_select_info->Back_title_screen_selected && level_select_info->timer < 20) {
         int center_x;

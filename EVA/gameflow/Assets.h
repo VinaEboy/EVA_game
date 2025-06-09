@@ -13,8 +13,9 @@ typedef struct save_game save_game;
 typedef struct level_1 level_1;
 
 typedef struct entities_sprites {
-    ALLEGRO_BITMAP *EVA01_no_gun_run;
-    ALLEGRO_BITMAP *EVA01_gun_run;
+    ALLEGRO_BITMAP *player_run_no_gun;
+    ALLEGRO_BITMAP *player_run_gun; // Já vamos deixar aqui para o futuro
+    
     ALLEGRO_BITMAP *level_1_background;
     ALLEGRO_BITMAP *level_1_ground;
 } entities_sprites;

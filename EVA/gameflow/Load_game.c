@@ -58,7 +58,9 @@ void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
     // desenha a imagem escalada para preencher a tela inteira
     al_draw_scaled_bitmap(load_game_image,0, 0,img_width, img_height,0, 0,X_SCREEN, Y_SCREEN,0);
 
-    if (event->type == ALLEGRO_EVENT_KEY_UP) {
+    if (event->type == ALLEGRO_EVENT_TIMER) load_game_info->timer++;
+
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN) {
         load_game_info->timer = 0; // para resetar o tempo que pisca
         if (event->keyboard.keycode == state->controls->DOWN)
             load_game_down_move(load_game_info);
@@ -207,7 +209,6 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
     int default_slot_width = al_get_bitmap_width(default_slot_image);
     int default_slot_height = al_get_bitmap_height(default_slot_image);
     
-    load_game_info->timer++;
 
     if (load_game_info->return_to_title_screen_selected) {
         al_draw_text(font,al_map_rgb(184, 134, 11), X_SCREEN/2, Y_SCREEN*0.55, ALLEGRO_ALIGN_CENTER, "Return to");

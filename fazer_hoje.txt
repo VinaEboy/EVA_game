@@ -3,7 +3,10 @@ fazer espinhos? Fazer poça de LCL que insta kill?
 Dai eu sobrescrevo do fundo pq daria trampo fazer um fundo com buraco
 
 Para hoje:
-- tentar fazer um quadrado se mexer
+- colocar os sprites de animações
+- colidir com as laterais
+- Fazer o pause
+talvez pensar em outro cenário ou arrumar um pouco esse
 
 Fazer algum inimigo que atira em uma altura quea
 agachado não te atinja
@@ -26,10 +29,6 @@ Falta na fase 1:
 - sprites do EVA na parede? fazer um sistema de escalar parede ?
 - Fazer lerp() para quando a camera estiver na beirada
 - trabalhar com zona morte no decorrer da fase
-
-Fazer agora (pouco a pouco):
-- colocar um quadrado no cenário com a camera acompanhando
-- dai Colocar o EVA andando no cenário 
 
 Se der tempo:
 - Dash

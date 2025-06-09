@@ -22,8 +22,8 @@ game_assets *game_assets_create() {
         free(assets);
         return NULL;
     }
-    sprites->EVA01_no_gun_run = NULL;
-    sprites->EVA01_gun_run = NULL;
+    sprites->player_run_no_gun = NULL;
+    sprites->player_run_gun = NULL;
     sprites->level_1_background = NULL;
     sprites->level_1_ground = NULL;
 
