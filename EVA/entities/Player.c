@@ -11,14 +11,15 @@ Player* create_player(int Y_SCREEN, float FLOOR_height) {
     Player *player = malloc(sizeof(Player));
     if (!player) return NULL;
 
+    player->buster = buster_create();
     player->x = 0; // começa no começo da tela
 
     // Posiciona o jogador exatamente sobre o chão
-    player->y = Y_SCREEN - FLOOR_height - FRAME_HEIGHT;
-    player->hit_box_x = FRAME_WIDTH*0.98/2; //o player não é um retangulo perfeito por isso esse fator de ajuste
-    player->hit_boy_y = FRAME_HEIGHT*0.98/2;
-    player->center_x = FRAME_WIDTH/2;
-    player->center_y = FRAME_HEIGHT/2;
+    player->y = Y_SCREEN - FLOOR_height - EVA_HEIGHT;
+    player->hit_box_x = EVA_WIDTH*0.98/2; //o player não é um retangulo perfeito por isso esse fator de ajuste
+    player->hit_boy_y = EVA_HEIGHT*0.98/2;
+    player->center_x = EVA_WIDTH/2;
+    player->center_y = EVA_HEIGHT/2;
     player->vx = 0;
     player->vy = 0;
     player->direction = 1;
@@ -27,7 +28,9 @@ Player* create_player(int Y_SCREEN, float FLOOR_height) {
     player->is_moving = 0;
     player->is_squat = 0;
     player->is_charging_shot = 0;
+    player->is_taking_damage = 0;
     player->charge_shot = 0;
+    player->timer_charge_shot = 0;
     player->shot = 0;
 
     player->life = 100;
@@ -39,54 +42,68 @@ Player* create_player(int Y_SCREEN, float FLOOR_height) {
     return player;
 }
 
-// Esta é a função mais importante.
-// Ela é a única que deve mudar o estado da animação.
+
+// função que muda o estado de animação
 void player_set_animation_state(Player *player, PlayerAnimState new_state) {
-    // Se a nova animação já for a que está ativa, não fazemos nada.
-    // Isso impede que a animação seja resetada a cada quadro.
+
+    // Se a nova animação já for a que está ativa, não precisa mudar
     if (player->current_anim_state == new_state) {
         return;
     }
 
-    // A animação mudou!
     player->current_anim_state = new_state;
     player->current_frame = 0; // Resetamos o frame para o início da nova animação
-    player->frame_timer = 0;   // Resetamos o timer também
+
+    //caso em que o frame não é por tempo e sim por estar atirando ou não no ar
+    if(!player->is_on_ground && player->is_charging_shot) 
+        player->current_frame = 1;
+
+    player->frame_timer = 0;   // Reseta o timer 
 }
 
-// Esta função avança os frames da animação que está ativa.
+// Atualiza/avança os frames da animação
 void player_update_animation(Player *player) {
     player->frame_timer++;
 
     // Baseado na animação ATUAL, definimos a velocidade e o número de frames.
     switch (player->current_anim_state) {
         
-        case ANIM_IDLE:
-            if (player->frame_timer >= 20) { // Animação mais lenta para o idle
+        case ANIM_STOPPED_GUN:
+        case ANIM_STOPPED_NO_GUN:
+            if (player->frame_timer >= ANIMATION_BLINK_SPEED) { // Animação mais lenta para se mexer parado
                 player->current_frame = (player->current_frame + 1) % 2; // Loop entre 2 frames
                 player->frame_timer = 0;
             }
             break;
 
-        case ANIM_WALKING:
-        case ANIM_WALKING_SHOOT: // Usa a mesma animação de andar
-            if (player->frame_timer >= ANIMATION_SPEED) {
+        case ANIM_RUN_GUN:
+        case ANIM_RUN_NO_GUN: // Usa a mesma animação de andar
+            if (player->frame_timer >= ANIMATION_RUN_SPEED) {
                 player->current_frame = (player->current_frame + 1) % 6; // Loop entre 6 frames
                 player->frame_timer = 0;
             }
             break;
 
-        case ANIM_JUMPING:
-            // Para o pulo, geralmente ficamos em um frame só.
-            // Aqui poderíamos ter uma lógica para frame de subida e de queda.
-            // Por enquanto, vamos deixar no primeiro frame.
-            player->current_frame = 0; 
+        case ANIM_JUMP:
+            if (player->is_charging_shot)
+                player->current_frame = 1; 
+            else 
+                player->current_frame = 0;    
             break;
 
-        case ANIM_CROUCHING:
-        case ANIM_STAND_SHOOT:
-             // Animações de um frame só, não precisam de update.
-            player->current_frame = 0;
+        case ANIM_SQUAT:
+           if (player->frame_timer >= ANIMATION_SQUAT_SPEED) { // agachar numa velocidade até que rápido
+                if (player->current_frame < 1) player->current_frame++; 
+                else if (player->is_charging_shot) player->current_frame = 3; //se estiver atirando
+                else player->current_frame = 2; //se não estiver atirando
+                player->frame_timer = 0;
+            }            
+            break;
+        case ANIM_DAMAGE:
+           if (player->frame_timer >= ANIMATION_DAMAGE_SPEED) { // Animação mais lenta para levar dano
+                player->current_frame = (player->current_frame + 1) % 2; // Loop entre 2 frames
+                player->frame_timer = 0;
+            }            
             break;
     }
 }
@@ -94,74 +111,74 @@ void player_update_animation(Player *player) {
 void update_player_sprite(Player *player) {
     PlayerAnimState desired_state;
     if (!player->is_on_ground) {
-        desired_state = ANIM_JUMPING;
+        desired_state = ANIM_JUMP;
     } else if (player->is_squat) {
-        desired_state = ANIM_CROUCHING;
-    } else if (player->is_moving) {
-        desired_state = player->is_charging_shot ? ANIM_WALKING_SHOOT : ANIM_WALKING;
+        desired_state = ANIM_SQUAT;
+    } else if (player->is_moving && player->is_charging_shot) {
+        desired_state = ANIM_RUN_GUN;    
+    } else if (player->is_moving && !player->is_charging_shot) {
+        desired_state = ANIM_RUN_NO_GUN;
+    } else if ( player->is_taking_damage) {
+        desired_state = ANIM_DAMAGE;
+    } else if (player->is_stopped && player->is_charging_shot) {
+        desired_state = ANIM_STOPPED_GUN;
     } else {
-        desired_state = player->is_charging_shot ? ANIM_STAND_SHOOT : ANIM_IDLE;
+        desired_state = ANIM_STOPPED_NO_GUN;
     }
 
-    // <<< NOVO: A função "cérebro" que vai gerenciar a troca de animações >>>
+    // muda o estado de frame para o desejado, setando corre
     player_set_animation_state(player, desired_state);
 
-    // <<< NOVO: A função que vai avançar os frames da animação ativa >>>
+    // atualiza/avança os frames
     player_update_animation(player);
 }
 
 void player_update_position (Player *player, int num_platforms, Platform *platforms) {
 
-    // --- LÓGICA DE FÍSICA HORIZONTAL ---
+    // movimento horizontal é travado se estiver agachado
     if (player->is_moving && !player->is_squat) {
         if (player->direction == 1) { // Direita
-            // Se a velocidade ainda não atingiu o máximo, acelera.
-            if (player->vx < PLAYER_SPEED) {
-                player->vx += PLAYER_SPEED / 3;
-            } 
-            // Senão, limita a velocidade ao máximo.
-            else {
-                player->vx = PLAYER_SPEED;
-            }
+            if (player->vx < PLAYER_SPEED) 
+                player->vx += PLAYER_SPEED / 3; // acelera
+            else 
+                player->vx = PLAYER_SPEED; //limita a velocidade ao máximo (negativo).
+            
         } else { // Esquerda
-            // Se a velocidade ainda não atingiu o máximo (negativo), acelera.
-            if (player->vx > -PLAYER_SPEED) {
-                player->vx -= PLAYER_SPEED / 3;
-            }
-            // Senão, limita a velocidade ao máximo (negativo).
-            else {
-                player->vx = -PLAYER_SPEED;
-            }
+            if (player->vx > -PLAYER_SPEED) 
+                player->vx -= PLAYER_SPEED / 3; // acelera
+            else 
+                player->vx = -PLAYER_SPEED; //limita a velocidade ao máximo (negativo).
         }
     } 
     
     else {
-        // Desaceleração (fricção)
-        player->vx *= 0.85; // Use um valor constante para a fricção
-        if (fabs(player->vx) < 0.5) 
+        // Desaceleração gradual
+        player->vx *= 0.85; 
+        if (abs(player->vx) < 0.5) 
             player->vx = 0; // Para completamente
         
     }
 
 
-    // --- LÓGICA DE FÍSICA VERTICAL ---
+    // gravidade é uma aceleração
     player->vy += GRAVITY;
 
 
-    // --- ATUALIZAÇÃO FINAL DA POSIÇÃO ---
+    // definir a priori a nova posição e se necessário corrigir
     player->x += player->vx;
     player->y += player->vy;
 
-    // Antes de checar, assumimos que o jogador está no ar.
-    // Se encontrarmos uma colisão, mudaremos isso.
+    // definir a priori que está no ar
     player->is_on_ground = 0;
-    // Itera por cada plataforma definida na fase.
+
     for (int i = 0; i < num_platforms; i++) {
         Platform current_platform = platforms[i];
-        // Se uma colisão de pouso for detectada...
-        if (check_collision_with_platform(player, current_platform)) {
-            // ...resolvemos a colisão.
-            resolve_collision_with_platform(player, current_platform);
+        int status = check_collision_with_platform(player, current_platform);
+        
+        //significa que deu alguma colisão
+        if (status != 0) {
+            //corrige a posição do jogar se colidir
+            resolve_collision_with_platform(player, current_platform, status);
             break; 
         }
     }
@@ -170,7 +187,7 @@ void player_update_position (Player *player, int num_platforms, Platform *platfo
 
 void update_camera(Player *player, float *camera_x, int X_SCREEN) {
 
-    // Define os limites da "zona morta" como porcentagens da tela
+    // "zona morta" 
     float dead_zone_left_boundary = *camera_x + X_SCREEN * 0.25;
     float dead_zone_right_boundary = *camera_x + X_SCREEN * 0.50;
 
@@ -198,39 +215,128 @@ void update_camera(Player *player, float *camera_x, int X_SCREEN) {
     }
 }
 
+void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row) {
+
+    switch (player->current_anim_state) {
+        
+        case ANIM_STOPPED_GUN: // Animação para quando o jogador está parado
+            *sprite_sheet = sprites->player_stopped_gun;
+            *frames_per_row = 2; // "2 sprites 1 linha"
+            break;
+
+        case ANIM_STOPPED_NO_GUN: // Animação para quando o jogador está parado
+            *sprite_sheet = sprites->player_stopped_no_gun;
+            *frames_per_row = 2; // "2 sprites 1 linha"
+            break;
+
+
+        case ANIM_RUN_NO_GUN: // Andando sem atirar
+            *sprite_sheet = sprites->player_run_no_gun;
+            *frames_per_row = 3; // "3 sprites em cada uma das 2 linhas"
+            break;
+
+        case ANIM_RUN_GUN: // Andando e atirando
+            *sprite_sheet = sprites->player_run_gun;
+            *frames_per_row = 3; // "3 sprites em cada uma das 2 linhas"
+            break;
+
+        case ANIM_JUMP:
+            *sprite_sheet = sprites->player_jump;
+            *frames_per_row = 2; // "2 sprites 1 linha"
+            break;
+            
+        case ANIM_SQUAT: // Agachado
+            *sprite_sheet = sprites->player_squat;
+            *frames_per_row = 4; // "3 sprites 1 linha"
+            break;
+
+        case ANIM_DAMAGE: // Recebendo dano
+            *sprite_sheet = sprites->player_damage;
+            *frames_per_row = 2; // "2 sprites 1 linha"
+            break;
+
+        // Caso padrão para evitar erros se um estado inesperado for definido.
+        // Geralmente é bom definir para a animação de 'parado'.
+        default:
+            *sprite_sheet = sprites->player_stopped_no_gun;
+            *frames_per_row = 2;
+            break;
+    }
+
+}
+
+// tiro
+
+void buster_fire(Player *player) {
+    player->shot = 0;
+    if (player->charge_shot == 0)
+        buster_fire_1(player);
+    else if (player->charge_shot == 1)
+        buster_fire_2(player);
+    else if (player->charge_shot == 2)
+        buster_fire_3(player);
+    player->charge_shot = 0;
+    player->timer_charge_shot = 0;
+}
+
+void buster_fire_1(Player *player) {
+    bullet_1 *shot = NULL;
+
+    //olhando para direita
+    if (player->direction == 1) shot = bullet_1_create(player->x + EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_1);
+    else if (player->direction == -1) shot = bullet_1_create(player->x - EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_1);
+    if (shot) player->buster->shots_1 = shot;
+}
+
+void buster_fire_2(Player *player) {
+    bullet_2 *shot = NULL;
+
+    //olhando para direita
+    if (player->direction == 1) shot = bullet_2_create(player->x + EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_2);
+    else if (player->direction == -1) shot = bullet_2_create(player->x - EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_2);
+    if (shot) player->buster->shots_2 = shot;
+}
+
+void buster_fire_3(Player *player) {
+    bullet_3 *shot = NULL;
+
+    //olhando para direita
+    if (player->direction == 1) shot = bullet_3_create(player->x + EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_3);
+    else if (player->direction == -1) shot = bullet_3_create(player->x - EVA_WIDTH/2, player->y + EVA_HEIGHT/2, player->direction, player->buster->shots_3);
+    if (shot) player->buster->shots_3 = shot;
+
+}
+
 
 /// COLISOES
 
-unsigned char check_collision_with_platform(Player *player, Platform platform) {
+int check_collision_with_platform(Player *player, Platform platform) {
+    //a priori não colidiu
+    int status = 0;
 
-
-    // --- CONDIÇÃO 2: CHECAGEM VERTICAL (PARA POUSO) ---
-    // A base do jogador (player->y + FRAME_HEIGHT) deve estar abaixo ou na mesma linha
-    // da superfície da plataforma (platform.y).
-    unsigned char vertical_position = (player->y + FRAME_HEIGHT >= platform.y);
-
-    // --- CONDIÇÃO 3: DIREÇÃO DO MOVIMENTO ---
-    // O jogador deve estar se movendo para baixo (ou estar parado verticalmente).
-    // Isso impede que a colisão seja detectada quando ele está pulando POR BAIXO da plataforma.
-    unsigned char is_falling = (player->vy >= 0);
-
-    // --- CONDIÇÃO BÔNUS: Evitar "grudar" na plataforma pelo lado ---
-    // Verificamos se, no *quadro anterior*, a base do jogador estava ACIMA da plataforma.
-    // Isso garante que a colisão só seja detectada no exato momento do pouso.
-    // (player->y - player->vy) nos dá a posição Y aproximada do quadro anterior.
-    unsigned char was_above = ((player->y - player->vy) + FRAME_HEIGHT <= platform.y);
+    // colisão vertical com plataforma
+    if (player->y + EVA_HEIGHT >= platform.y)
+        status = 1;
     
-
-    return  vertical_position && is_falling && was_above;
-
+    return status;
 }
 
 
-// só resolve verticalmente, se colar horizontalmente o personagem vai para cima da plataforma
-void resolve_collision_with_platform(Player *player, Platform platform) {
+// só resolve uma colisão por enquanto
+void resolve_collision_with_platform(Player *player, Platform platform, int status) {
     
-    player->y = platform.y - FRAME_HEIGHT;
-
-    player->vy = 0;
-    player->is_on_ground = 1;
+    //colidiu com a plataforma verticalmente
+    if (status == 1) {
+        player->y = platform.y - EVA_HEIGHT;
+        player->vy = 0;
+        player->is_on_ground = 1;
+    }
 }
+
+// aux, para n ter que importar math.h
+int abs(int x) {
+    if (x < 0)
+        x = -x;
+    return x;
+}
+

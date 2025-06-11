@@ -10,7 +10,8 @@
 #include "Game_state.h"
 #include "Assets.h"
 #include "../entities/Player.h"
-
+#include "../entities/Buster.h"
+#include "../entities/Charge_shot.h"
 
 level_1 *level_1_info_create(int Y_SCREEN) {
     level_1 *level_1_info = malloc(sizeof(level_1));
@@ -32,24 +33,20 @@ level_1 *level_1_info_create(int Y_SCREEN) {
 void start_level_1(game_state *state, level_1 **level_1_info, entities_sprites *sprites, int Y_SCREEN) {
     
     *level_1_info = level_1_info_create(Y_SCREEN);
-    if (!*level_1_info) {
-        fprintf(stderr, "Falha ao carregar informações level 1\n");
-        exit(1);
-    }
 
     sprites->level_1_background = al_load_bitmap("images/level_1_background.png");
-    if (!sprites->level_1_background) {
-        fprintf(stderr, "Falha ao carregar fundo level 1\n");
-        exit(1);
-    }
     sprites->level_1_ground = al_load_bitmap("images/ground.png");
-    if (!sprites->level_1_ground) {
-        fprintf(stderr, "Falha ao carregar chão level 1\n");
-        exit(1);
-    }
 
     sprites->player_run_no_gun = al_load_bitmap("images/EVA_sprites/EVA_run_no_gun.png");
-    if (!sprites->player_run_no_gun) {
+    sprites->player_run_gun = al_load_bitmap("images/EVA_sprites/EVA_run_gun.png");
+    sprites->player_jump =  al_load_bitmap("images/EVA_sprites/EVA_jump.png");
+    sprites->player_stopped_gun =  al_load_bitmap("images/EVA_sprites/EVA_stopped_gun.png");
+    sprites->player_stopped_no_gun =  al_load_bitmap("images/EVA_sprites/EVA_stopped_no_gun.png");
+    sprites->player_damage =  al_load_bitmap("images/EVA_sprites/EVA_damage.png");
+    sprites->player_squat =  al_load_bitmap("images/EVA_sprites/EVA_squat.png");
+
+    if (!sprites->player_run_no_gun || !sprites->player_jump || !sprites->player_stopped_gun||
+        !sprites->player_damage || !sprites->player_squat || !sprites->player_stopped_no_gun) {
         fprintf(stderr, "Falha ao carregar sprite do jogador\n");
         exit(1);
     }
@@ -66,6 +63,10 @@ void level_1_update(level_1 *level_1_info, int X_SCREEN) {
 
     update_player_sprite(player);
 
+    update_bullets_1(player->buster);
+    update_bullets_2(player->buster);
+    update_bullets_3(player->buster);
+    
     update_camera(player, &level_1_info->camera_x, X_SCREEN);
 }
 
@@ -78,6 +79,7 @@ void show_level_1(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
 
     // Desenha o jogador por cima do cenário
     draw_player(level_1_info->camera_x, level_1_info->player, sprites);
+    draw_bullets(level_1_info->camera_x, level_1_info->player, sprites);
 
     al_flip_display();
 }
@@ -89,21 +91,13 @@ void show_level_1(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
 
 //Função para desenhar o jogador
 void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
+
     ALLEGRO_BITMAP *sprite_sheet = NULL;
-    int frames_per_row = 1;
+    int frames_per_row = 0;
+    player_sprite(player, &sprite_sheet, sprites, &frames_per_row);
 
-    switch (player->current_anim_state) {
-        // ... (seu switch case para decidir o sprite sheet) ...
-        default:
-            sprite_sheet = sprites->player_run_no_gun;
-            frames_per_row = 3;
-            break;
-    }
-    
-    if (!sprite_sheet) return;
-
-    int frame_x = (player->current_frame % frames_per_row) * FRAME_WIDTH;
-    int frame_y = (player->current_frame / frames_per_row) * FRAME_HEIGHT;
+    int frame_x = (player->current_frame % frames_per_row) * EVA_WIDTH;
+    int frame_y = (player->current_frame / frames_per_row) * EVA_HEIGHT;
 
     int flip_flag;
     if (player->direction == -1) flip_flag = ALLEGRO_FLIP_HORIZONTAL;
@@ -113,8 +107,8 @@ void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
     al_draw_bitmap_region(
         sprite_sheet,
         frame_x, frame_y,
-        FRAME_WIDTH, FRAME_HEIGHT,
-        player->x - camera_x, // <<< MUDANÇA CRÍTICA AQUI
+        EVA_WIDTH, EVA_HEIGHT,
+        player->x - camera_x, 
         player->y,
         flip_flag
     );
@@ -154,4 +148,48 @@ void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SC
         X_SCREEN, FLOOR, // dw, dh (ocupa os últimos 7% da tela)
         0
     );
+}
+
+//por enquanto são retangulos e não estou usando os sprites
+void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
+    bullet_1 *shot_1 = player->buster->shots_1;
+    while(shot_1 != NULL) {
+        float x1 = shot_1->x - camera_x;
+        float y1 = shot_1->y;
+        float x2 = x1 + BULLET_1_WEIGHT - camera_x;
+        float y2 = y1 + BULLET_1_HEIGHT;
+
+        al_draw_rectangle(x1, y1, x2, y2, al_map_rgb(184, 134, 11), 5);
+        shot_1 = shot_1->next;
+    }
+
+    bullet_2 *shot_2 = player->buster->shots_2;
+    while(shot_2 != NULL) {
+        float x1 = shot_1->x - camera_x;
+        float y1 = shot_1->y;
+        float x2 = x1 + BULLET_1_WEIGHT - camera_x;
+        float y2 = y1 + BULLET_1_HEIGHT;
+
+        al_draw_rectangle(x1, y1, x2, y2, al_map_rgb(184, 134, 11), 5);
+        shot_1 = shot_1->next;
+    }
+
+    bullet_3 *shot_3 = player->buster->shots_3;
+    while(shot_3 != NULL) {
+        float x1 = shot_3->x - camera_x;
+        float y1 = shot_3->y;
+        float x2 = x1 + BULLET_3_WEIGHT - camera_x;
+        float y2 = y1 + BULLET_3_HEIGHT;
+        
+        al_draw_rectangle(x1, y1, x2, y2, al_map_rgb(184, 134, 11), 5);
+        shot_3 = shot_3->next;
+    }
+
+}
+
+
+void exit_level_1(game_state *state, level_1 *level_1_info, entities_sprites *sprites) {
+    state->level_1 = 0;
+    state->level_1_started = 0;
+    free(level_1_info);
 }

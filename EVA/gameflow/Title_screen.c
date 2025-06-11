@@ -42,6 +42,7 @@ void start_title_screen(game_state *state, title_screen **title_screen_info, ALL
     *title_screen_info = title_screen_info_create();
     if (!*title_screen_info) {
         fprintf(stderr, "Falha ao criar informações da tela principal \n");
+        exit(1);
     }
 
     state->title_screen_started = 1;
@@ -66,7 +67,7 @@ void show_title_screen(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
         if (event->keyboard.keycode == state->controls->UP)
             title_screen_up_move(title_screen_info);
         if (event->keyboard.keycode == state->controls->CONFIRM)
-            title_screen_confirm(state,title_screen_info,title_screen_image);
+            title_screen_confirm(state,title_screen_info);
     }
 
     title_screen_draw_text(title_screen_info, font, X_SCREEN, Y_SCREEN);
@@ -118,7 +119,7 @@ void title_screen_up_move(title_screen *title_screen_info ) {
     }
 }
 
-void title_screen_confirm(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image) {
+void title_screen_confirm(game_state *state, title_screen *title_screen_info) {
     if (title_screen_info->exit_selected) {
         state->running = 0;
         title_screen_info->title_screen_exit = 1;

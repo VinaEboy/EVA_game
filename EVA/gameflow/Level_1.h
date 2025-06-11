@@ -6,10 +6,10 @@
 #include "Assets.h"
 #include "../entities/Player.h"
 #include "../mechanics/Objects.h"
+#include "Game_state.h"
+#include "Assets.h"
+
 #define MAX_PLATFORMS 20
-
-
-typedef entities_sprites entities_sprites;
 
 typedef struct level_1 {
     float FLOOR; //altura do chão no começo
@@ -26,6 +26,8 @@ void level_1_update(level_1 *level_1_info, int X_SCREEN);
 
 //aux
 void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, float FLOOR);
-void draw_player(float camera_x, Player *player, entities_sprites *sprites); // <<< NOVO
+void draw_player(float camera_x, Player *player, entities_sprites *sprites); 
+void draw_bullets(float camera_x, Player *player,entities_sprites *sprites);
 
+void exit_level_1(game_state *state, level_1 *level_1_info, entities_sprites *sprites);
 #endif

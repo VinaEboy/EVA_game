@@ -10,12 +10,14 @@ game_assets *game_assets_create() {
     assets->level_select_image = NULL;
     assets->level_select_info = NULL;
     assets->pause_info = NULL;
+    assets->pause_image = NULL;
     assets->load_game_info = NULL;
     assets->save_game_info = NULL;
     assets->default_slot_image = NULL;
     assets->save_game_image = NULL;
     assets->load_game_info = NULL;
     assets->load_game_image = NULL;
+
 
     entities_sprites *sprites = malloc(sizeof(entities_sprites));
     if (!sprites) {
@@ -24,8 +26,15 @@ game_assets *game_assets_create() {
     }
     sprites->player_run_no_gun = NULL;
     sprites->player_run_gun = NULL;
+    sprites->player_jump = NULL;
+    sprites->player_stopped_gun = NULL;
+    sprites->player_stopped_no_gun = NULL;
+    sprites->player_damage = NULL;
+    sprites->player_squat =  NULL;
+
     sprites->level_1_background = NULL;
     sprites->level_1_ground = NULL;
+
 
     assets->sprites = sprites;
 

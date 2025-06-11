@@ -70,9 +70,9 @@ int main(){
 
 		else if (state->pause) {
 			if (!state->pause_started)
-				start_pause( );
+				start_pause(state, &assets->pause_info, &assets->pause_image);
 
-			show_pause ( );
+			show_pause (&event,state,font, disp, assets, X_SCREEN, Y_SCREEN );
 		}
 
 		else if (state->save_game) {

@@ -3,32 +3,25 @@ fazer espinhos? Fazer poça de LCL que insta kill?
 Dai eu sobrescrevo do fundo pq daria trampo fazer um fundo com buraco
 
 Para hoje:
-- colocar os sprites de animações
-- colidir com as laterais
-- Fazer o pause
-talvez pensar em outro cenário ou arrumar um pouco esse
+- Organizar ordem e comentários das funções em PLAYER
+- colocar em algum modulo as funçoes draw player, draw bullets...
+- Fazer o png do game over
+- colidir com as margens da tela
+- Fazer o sistema de tiro
 
-Fazer algum inimigo que atira em uma altura quea
+Fazer algum inimigo que atira em uma altura que
 agachado não te atinja
 
 Ficou para trás e falta fazer:
 - Shinji acompanhar na tela de seleção
 - Escrever de fato o progresso na fase de save/load, assim como calcular tempo de jogo
-- Fazer o PAUSE
 
 Falta na fase 1:
-- sprites do EVA parado se mexendinho
-- gravidade
-- EVA pulando, agachando
 - Barra de vida com cara do personagem
 - sprites do vilão
 - sprites dos inimigos
 - tiro
-- como fazer o fundo?
-- como fazer as plataformas?
-- sprites do EVA na parede? fazer um sistema de escalar parede ?
-- Fazer lerp() para quando a camera estiver na beirada
-- trabalhar com zona morte no decorrer da fase
+- "Travar" o chefão antes de derrotar inimigos
 
 Se der tempo:
 - Dash
@@ -36,4 +29,5 @@ Se der tempo:
 - Armadura do megaman man para o pé que dá dash ou pulo duplo
 - Warning para o vilão
 - Animação de transição da seleção pro vilão
+- Animação de start
 

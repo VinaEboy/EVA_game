@@ -26,3 +26,29 @@ void bullet_destroy(bullet *element){																		//Implementação da fun�
 
 	free(element);																							//Libera a memória da instância de projétil
 }
+
+void update_bullets_1(Player *player) {
+	bullet_1 *previous = NULL;
+	for (bullet_1 *index = player->buster->shots_1; index != NULL;) {
+		if (!index->trajectory) index->x -= BULLET_MOVE;
+		else if (index->trajectory == 1) index->x += BULLET_MOVE;
+	}
+
+	//margens da fase
+	if ((index->x < 0) || (index->x > 8000)) {
+		if (previous) {
+			previous->next = index->next;
+			bullet_1_destroy(index);
+			index = (bullet_1*) previous->next;
+		}
+		else {
+			player->buster->shots_1 = (bullet_1*) index->next;
+			bullet_1_destroy(index);
+			index = player->gun->shots_1;
+		}
+	}
+	else {
+		previous = index;
+		index = (bullet_1*) index->next;
+	}
+}

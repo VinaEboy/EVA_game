@@ -31,7 +31,7 @@ void show_title_screen(ALLEGRO_EVENT *event,game_state *state,ALLEGRO_FONT *font
 
 void title_screen_down_move(title_screen *title_screen_info );
 void title_screen_up_move(title_screen *title_screen_info );
-void title_screen_confirm (game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image );
+void title_screen_confirm (game_state *state, title_screen *title_screen_info);
 void title_screen_draw_text(title_screen *title_screen_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN);
 void exit_title_screen(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image);
 

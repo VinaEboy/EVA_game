@@ -6,6 +6,9 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
 
+#define BULLET_2_TIME 10
+#define BULLET_3_TIME 10
+
 // Protótipos para as funções auxiliares internas
 void joystick_jump(Player *player);
 void joystick_down(Player *player);
@@ -61,6 +64,18 @@ void joystick_update(game_state *state, Player *player) {
     } else {
         player->is_charging_shot = 0;
     }
+
+    if (player->is_charging_shot) {
+        player->timer_charge_shot++;
+        if (player->charge_shot == 0 && player->timer_charge_shot > BULLET_2_TIME) {
+            player->charge_shot = 1;
+            player->timer_charge_shot = 0;
+        } else if (player->charge_shot == 1 && player->timer_charge_shot > BULLET_3_TIME) {
+            player->charge_shot = 2;
+            player->timer_charge_shot = 0;
+        }
+    }
+
 }
 
 
@@ -82,9 +97,7 @@ void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
     // Ações que acontecem UMA VEZ ao SOLTAR uma tecla
     else if (event->type == ALLEGRO_EVENT_KEY_UP) {
         if (event->keyboard.keycode == state->controls->SHOT) {
-            // A tecla foi solta, então atira
-            player->shot = 1;
-            player->charge_shot = 0; // A lógica para definir o nível da carga viria antes daqui
+            buster_fire(player);
         }
         
         // CORREÇÃO CRÍTICA: A lógica de parar movimento no KEY_UP foi REMOVIDA.
