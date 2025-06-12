@@ -1,14 +1,9 @@
-Pensar sobre a questão das plataformas/cair delas:
-fazer espinhos? Fazer poça de LCL que insta kill?
-Dai eu sobrescrevo do fundo pq daria trampo fazer um fundo com buraco
-
 Para hoje:
-- Organizar ordem e comentários das funções em PLAYER
 - colocar em algum modulo as funçoes draw player, draw bullets...
 - Fazer o png do game over
-- colidir com as margens da tela
-- Fazer o sistema de tiro
-
+- fazer o pixalt da barra de vida com retangulos de vida a serem preenchidos
+- fazer sprites personagem
+ 
 Fazer algum inimigo que atira em uma altura que
 agachado não te atinja
 
@@ -20,10 +15,11 @@ Falta na fase 1:
 - Barra de vida com cara do personagem
 - sprites do vilão
 - sprites dos inimigos
-- tiro
 - "Travar" o chefão antes de derrotar inimigos
 
 Se der tempo:
+- Tiro diferente para um poder
+- fase 2
 - Dash
 - Coração que extende vida
 - Armadura do megaman man para o pé que dá dash ou pulo duplo

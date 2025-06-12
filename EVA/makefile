@@ -9,7 +9,7 @@ LDFLAGS = -fsanitize=address
 
 MAIN_SOURCES = main.c 
 
-SRC_DIRS = entities gameflow items mechanics
+SRC_DIRS = entities gameflow items mechanics levels
 SUB_SOURCES = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 
 SOURCES = $(MAIN_SOURCES) $(SUB_SOURCES)

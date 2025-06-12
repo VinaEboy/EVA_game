@@ -3,7 +3,7 @@
 
 #include "Charge_shot.h"
 
-#define BUSTER_COOLDOWN 10							
+#define BUSTER_COOLDOWN 2							
 
 typedef struct {																											
 	unsigned char timer;						
@@ -18,8 +18,8 @@ bullet_2* buster_shot_2(unsigned short x, unsigned short y, unsigned char trajec
 bullet_2* buster_shot_2(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster);									
 void buster_destroy(buster_t *buster);						
 
-void update_bullets_1(buster_t *buster);
-void update_bullets_2(buster_t *buster);
-void update_bullets_3(buster_t *buster);
+void update_bullets_1(float camera_x, buster_t *buster, int X_SCREEN);
+void update_bullets_2(float camera_x, buster_t *buster, int X_SCREEN);
+void update_bullets_3(float camera_x, buster_t *buster, int X_SCREEN);
 
 #endif						

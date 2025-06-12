@@ -54,14 +54,23 @@ void buster_destroy(buster_t *buster) {
 // funções de atualizar os tiros
 // por enquanto não estou trabalhando com os sprites do tiro, é só um retangulo por enquanto
 
-void update_bullets_1(buster_t *buster) {
+void update_bullets_1(float camera_x, buster_t *buster, int X_SCREEN) {
 	bullet_1 *previous = NULL;
 	for (bullet_1 *index = buster->shots_1; index != NULL;) {
-		if (!index->trajectory) index->x -= BULLET_MOVE;
+		if (index->trajectory == -1) index->x -= BULLET_MOVE;
 		else if (index->trajectory == 1) index->x += BULLET_MOVE;
 
+		index->frame_timer++;
+		if (index->frame_timer > BULLET_1_ANIMATION_SPEED) {
+			index->frame_timer = 0;
+			if (index->current_frame < 8)
+				index->current_frame++;
+			else
+				index->current_frame--;
+		}
+
 		//margens da fase
-		if ((index->x < 0) || (index->x > 8000)) {
+		if ((index->x < 0) || (index->x > 8000) || (index->x + BULLET_1_WEIGHT < camera_x) || (index->x  > camera_x + X_SCREEN)) {
 			if (previous) {
 				previous->next = index->next;
 				bullet_1_destroy(index);
@@ -80,15 +89,23 @@ void update_bullets_1(buster_t *buster) {
 	}
 }
 
-void update_bullets_2(buster_t *buster) {
+void update_bullets_2(float camera_x, buster_t *buster, int X_SCREEN) {
 	bullet_2 *previous = NULL;
 	for (bullet_2 *index = buster->shots_2; index != NULL;) {
-		if (!index->trajectory) index->x -= BULLET_MOVE;
+		if (index->trajectory == -1) index->x -= BULLET_MOVE;
 		else if (index->trajectory == 1) index->x += BULLET_MOVE;
 	
+		index->frame_timer++;
+		if (index->frame_timer > BULLET_2_ANIMATION_SPEED) {
+			index->frame_timer = 0;
+			if (index->current_frame < 5)
+				index->current_frame++;
+			else
+				index->current_frame--;
+		}
 
 		//margens da fase
-		if ((index->x < 0) || (index->x > 8000)) {
+		if ((index->x < 0) || (index->x > 8000) || (index->x + BULLET_2_WEIGHT < camera_x) || (index->x > camera_x + X_SCREEN)) {
 			if (previous) {
 				previous->next = index->next;
 				bullet_2_destroy(index);
@@ -107,15 +124,23 @@ void update_bullets_2(buster_t *buster) {
 	}
 }
 
-void update_bullets_3(buster_t *buster) {
+void update_bullets_3(float camera_x, buster_t *buster, int X_SCREEN) {
 	bullet_3 *previous = NULL;
 	for (bullet_3 *index = buster->shots_3; index != NULL;) {
-		if (!index->trajectory) index->x -= BULLET_MOVE;
+		if (index->trajectory == -1) index->x -= BULLET_MOVE;
 		else if (index->trajectory == 1) index->x += BULLET_MOVE;
 	
+		index->frame_timer++;
+		if (index->frame_timer > BULLET_3_ANIMATION_SPEED) {
+			index->frame_timer = 0;
+			if (index->current_frame < 4)
+				index->current_frame++;
+			else
+				index->current_frame--;
+		}
 
 		//margens da fase
-		if ((index->x < 0) || (index->x > 8000)) {
+		if ((index->x < 0) || (index->x > 8000) || (index->x + BULLET_3_WEIGHT < camera_x) || (index->x > camera_x + X_SCREEN)) {
 			if (previous) {
 				previous->next = index->next;
 				bullet_3_destroy(index);

@@ -7,7 +7,7 @@
 #include <allegro5/allegro_primitives.h>	
 #include <allegro5/allegro_ttf.h>
 #include <string.h>
-#include "Level_1.h" //por causa do "exit level"
+#include "../levels/Level_1.h" //por causa do "exit level"
 
 //informações necessárias para a tela inicial rodar
 pause_game *pause_info_create() {

@@ -19,9 +19,15 @@ typedef struct entities_sprites {
     ALLEGRO_BITMAP *player_stopped_no_gun;
     ALLEGRO_BITMAP *player_damage; //frame para quando levar dano
     ALLEGRO_BITMAP *player_squat;
+    ALLEGRO_BITMAP *charging_shot;
+    ALLEGRO_BITMAP *life_bar;
 
     ALLEGRO_BITMAP *level_1_background;
     ALLEGRO_BITMAP *level_1_ground;
+
+    ALLEGRO_BITMAP *bullet_1_image; //(0 a 8) frames
+    ALLEGRO_BITMAP *bullet_2_image; //(0 a 5) frames
+    ALLEGRO_BITMAP *bullet_3_image; //(0 a 4) frames
 } entities_sprites;
 
 typedef struct game_assets {

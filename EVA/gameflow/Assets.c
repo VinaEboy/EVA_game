@@ -31,9 +31,15 @@ game_assets *game_assets_create() {
     sprites->player_stopped_no_gun = NULL;
     sprites->player_damage = NULL;
     sprites->player_squat =  NULL;
-
+    sprites->charging_shot = NULL;
+    sprites->life_bar = NULL;
+    
     sprites->level_1_background = NULL;
     sprites->level_1_ground = NULL;
+
+    sprites->bullet_1_image = NULL;
+    sprites->bullet_2_image = NULL;
+    sprites->bullet_3_image = NULL;
 
 
     assets->sprites = sprites;

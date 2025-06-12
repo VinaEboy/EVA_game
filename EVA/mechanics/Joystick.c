@@ -6,8 +6,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_ttf.h>
 
-#define BULLET_2_TIME 10
-#define BULLET_3_TIME 10
+#define BULLET_2_TIME 25
+#define BULLET_3_TIME 25
 
 // Protótipos para as funções auxiliares internas
 void joystick_jump(Player *player);
@@ -94,14 +94,13 @@ void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
             state->pause = 1;
         }
     }
-    // Ações que acontecem UMA VEZ ao SOLTAR uma tecla
+
+    
     else if (event->type == ALLEGRO_EVENT_KEY_UP) {
         if (event->keyboard.keycode == state->controls->SHOT) {
             buster_fire(player);
         }
         
-        // CORREÇÃO CRÍTICA: A lógica de parar movimento no KEY_UP foi REMOVIDA.
-        // Isso elimina o conflito e permite que joystick_update funcione corretamente.
     }
 }
 

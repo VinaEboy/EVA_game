@@ -11,6 +11,8 @@
 #define ANIMATION_BLINK_SPEED 40
 #define ANIMATION_SQUAT_SPEED 2
 #define ANIMATION_DAMAGE_SPEED 10
+
+#define CHARGE_BLINK_SPEED 9
 // Dimensões do frame do player
 #define EVA_WIDTH 256
 #define EVA_HEIGHT 256
@@ -61,19 +63,24 @@ typedef struct Player {
 
 Player* create_player(int Y_SCREEN, float FLOOR);
 
-// <<< NOVO: A função "cérebro" que vai gerenciar a troca de animações >>>
+// ANIMATION
+
+// A função que vai gerenciar a troca de animações 
 void player_set_animation_state(Player *player, PlayerAnimState new_state);
 
-// <<< NOVO: A função que vai avançar os frames da animação ativa >>>
+// A função que vai avançar os frames da animação ativa 
 void player_update_animation(Player *player);
 
 void update_player_sprite(Player *player);
+
+void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row);
+
+// POSITION
 
 void player_update_position (Player *player, int num_platforms, Platform *platforms);
 
 void update_camera(Player *player, float *camera_x, int X_SCREEN);
 
-void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row);
 
 // tiro
 void buster_fire(Player *player);
@@ -85,6 +92,7 @@ void buster_fire_3(Player *player);
 void resolve_collision_with_platform(Player *player, Platform platform, int status);
 int check_collision_with_platform(Player *player, Platform platform);
 
+// aux math
 int abs(int x);
 
 
