@@ -6,6 +6,8 @@
 #include <allegro5/allegro_ttf.h>
 #include "gameflow/Game_state.h"
 #include "mechanics/Joystick.h"
+#include <stdlib.h>
+#include <time.h> //para usar no srand
 
 void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_TIMER *timer, ALLEGRO_EVENT_QUEUE *queue, game_assets *assets ) {
 	if(state) game_state_destroy(state);
@@ -25,7 +27,7 @@ int main(){
 	al_init_font_addon();      // necessário para qualquer tipo de fonte
 	al_init_ttf_addon();       // necessário para fontes .ttf																																													
 
-
+	srand(time(NULL)); //inicia a aleatoriedade do jogo
 	ALLEGRO_TIMER *timer = al_create_timer(1.0 / 30.0);																																						
 	ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();																																					
 	ALLEGRO_FONT *font = al_create_builtin_font();		
@@ -111,7 +113,7 @@ int main(){
 
 			if (event.type == ALLEGRO_EVENT_TIMER) {
 				joystick_update(state,assets->level_1_info->player);
-				level_1_update(assets->level_1_info, X_SCREEN); //atualiza as posições dos inimigos e gravidade
+				level_1_update(assets->level_1_info, X_SCREEN, Y_SCREEN); //atualiza as posições dos inimigos e gravidade
 				show_level_1 (&event, state, font, disp, assets->sprites, assets->level_1_info, X_SCREEN, Y_SCREEN);
 			}
 		}

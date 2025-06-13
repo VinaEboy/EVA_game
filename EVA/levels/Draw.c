@@ -1,6 +1,47 @@
 #include "Draw.h"
 #include <math.h> // para a função seno que oscila o brilho
 #include <allegro5/allegro_primitives.h>
+#include <stdio.h>
+
+// BACKGROUND
+
+void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, float FLOOR) {
+    ALLEGRO_BITMAP *background = sprites->level_1_background;
+    ALLEGRO_BITMAP *ground = sprites->level_1_ground;
+
+    int background_width = al_get_bitmap_width(background);
+    int background_height = al_get_bitmap_height(background);
+
+    int ground_height = al_get_bitmap_height(ground);  // altura real do bitmap do chão
+    int background_screen_height = Y_SCREEN - FLOOR;
+
+    // Clamp da câmera para não passar da imagem
+    if (camera_x < 0) camera_x = 0;
+    if (camera_x > background_width - X_SCREEN) camera_x = background_width - X_SCREEN;
+
+    // --- Desenha o fundo, apenas na área acima do chão ---
+    al_draw_scaled_bitmap(
+        background,
+        camera_x, 0,                      // sx, sy
+        X_SCREEN, background_height,             // sw, sh (total da imagem de fundo)
+        0, 0,                            // dx, dy (topo da tela)
+        X_SCREEN, background_screen_height, // dw, dh (desenha até onde começa o chão)
+        0
+    );
+
+    // --- Desenha o chão exatamente no rodapé da tela ---
+    al_draw_scaled_bitmap(
+        ground,
+        camera_x, 0,                   // sx, sy
+        X_SCREEN, ground_height,      // sw, sh
+        0, background_screen_height,  // dx, dy (posição na tela)
+        X_SCREEN, FLOOR, // dw, dh (ocupa os últimos 7% da tela)
+        0
+    );
+}
+
+// PLAYER ////////////////////////////
+
 
 //Função para desenhar o jogador
 void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
@@ -40,41 +81,6 @@ void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
 }
 
 
-void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, float FLOOR) {
-    ALLEGRO_BITMAP *background = sprites->level_1_background;
-    ALLEGRO_BITMAP *ground = sprites->level_1_ground;
-
-    int background_width = al_get_bitmap_width(background);
-    int background_height = al_get_bitmap_height(background);
-
-    int ground_height = al_get_bitmap_height(ground);  // altura real do bitmap do chão
-    int background_screen_height = Y_SCREEN - FLOOR;
-
-    // Clamp da câmera para não passar da imagem
-    if (camera_x < 0) camera_x = 0;
-    if (camera_x > background_width - X_SCREEN) camera_x = background_width - X_SCREEN;
-
-    // --- Desenha o fundo, apenas na área acima do chão ---
-    al_draw_scaled_bitmap(
-        background,
-        camera_x, 0,                      // sx, sy
-        X_SCREEN, background_height,             // sw, sh (total da imagem de fundo)
-        0, 0,                            // dx, dy (topo da tela)
-        X_SCREEN, background_screen_height, // dw, dh (desenha até onde começa o chão)
-        0
-    );
-
-    // --- Desenha o chão exatamente no rodapé da tela ---
-    al_draw_scaled_bitmap(
-        ground,
-        camera_x, 0,                   // sx, sy
-        X_SCREEN, ground_height,      // sw, sh
-        0, background_screen_height,  // dx, dy (posição na tela)
-        X_SCREEN, FLOOR, // dw, dh (ocupa os últimos 7% da tela)
-        0
-    );
-}
-
 //por enquanto são retangulos e não estou usando os sprites
 void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
     bullet_1 *shot_1 = player->buster->shots_1;
@@ -86,7 +92,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
 
         // Posição na tela (destination_x), ajustada para centralizar o sprite
         // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_1->x - camera_x) - (BULLET_1_WEIGHT / 2.0f);
+        float dx = (shot_1->x - camera_x) - (BULLET_1_WIDTH / 2.0f);
         float dy = shot_1->y - (BULLET_1_HEIGHT / 2.0f);
 
         int flags;
@@ -97,7 +103,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
                                 sx, 0,           // Posição (sx, sy) e
                                 24, 36, // tamanho do frame na imagem original
                                 dx, dy,            // Posição (dx, dy) e
-                                BULLET_1_WEIGHT, BULLET_1_HEIGHT, // tamanho (dw, dh) final na tela
+                                BULLET_1_WIDTH , BULLET_1_HEIGHT, // tamanho (dw, dh) final na tela
                                 flags);
 
         shot_1 = (bullet_1*)shot_1->next;
@@ -112,7 +118,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
 
         // Posição na tela (destination_x), ajustada para centralizar o sprite
         // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_2->x - camera_x) - (BULLET_2_WEIGHT / 2.0f);
+        float dx = (shot_2->x - camera_x) - (BULLET_2_WIDTH  / 2.0f);
         float dy = shot_2->y - (BULLET_2_HEIGHT / 2.0f);
 
         int flags;
@@ -123,7 +129,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
                                 sx, 0,           // Posição (sx, sy) e
                                 30, 36, // tamanho do frame na imagem original
                                 dx, dy,            // Posição (dx, dy) e
-                                BULLET_2_WEIGHT, BULLET_2_HEIGHT, // tamanho (dw, dh) final na tela
+                                BULLET_2_WIDTH , BULLET_2_HEIGHT, // tamanho (dw, dh) final na tela
                                 flags);
 
         shot_2 = (bullet_2*)shot_2->next;
@@ -138,7 +144,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
 
         // Posição na tela (destination_x), ajustada para centralizar o sprite
         // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_3->x - camera_x) - (BULLET_3_WEIGHT / 2.0f);
+        float dx = (shot_3->x - camera_x) - (BULLET_3_WIDTH  / 2.0f);
         float dy = shot_3->y - (BULLET_3_HEIGHT / 2.0f);
 
         int flags;
@@ -149,7 +155,7 @@ void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
                                 sx, 0,           // Posição (sx, sy) e
                                 64, 36, // tamanho do frame na imagem original
                                 dx, dy,            // Posição (dx, dy) e
-                                BULLET_3_WEIGHT, BULLET_3_HEIGHT, // tamanho (dw, dh) final na tela
+                                BULLET_3_WIDTH, BULLET_3_HEIGHT, // tamanho (dw, dh) final na tela
                                 flags);
 
         shot_3 = (bullet_3*)shot_3->next;
@@ -266,4 +272,41 @@ void draw_life_bar_EVA(float camera_x, Player *player, entities_sprites *sprites
             health_color
         );
     }
+}
+
+// JA ///////////////////////////
+
+void draw_ja(float camera_x, Jet_alone *ja, entities_sprites *sprites) {
+    ALLEGRO_BITMAP *sprite_sheet = NULL;
+
+    int row = 0;
+    if (ja->state == JA_WALK && ja->is_shooting)
+        row = 1;
+    ja_sprite (ja, &sprite_sheet, sprites);
+    if (!sprite_sheet) {
+        printf("DEU ERRO \n");
+        exit(1);
+    }
+
+    int frame_x = ja->current_frame * 512;
+    int frame_y = row * 512;
+
+    int flip_flag;
+    if (ja->direction == 1) flip_flag = ALLEGRO_FLIP_HORIZONTAL;
+    else flip_flag = 0;
+
+    //a priori não tem tingimento, mas se ele levar dano tem
+    ALLEGRO_COLOR tint_color = al_map_rgb(255, 255, 255);
+
+    al_draw_tinted_scaled_bitmap(
+        sprite_sheet,        // O bitmap de onde vamos tirar o sprite.
+        tint_color,          // A cor de tingimento.
+        frame_x, frame_y,    // Posição (x,y) do frame na spritesheet.
+        512, 512,            // Largura e Altura DO FRAME ORIGINAL na spritesheet.
+        ja->x - camera_x,    // Posição final (x) na tela onde será desenhado.
+        ja->y,               // Posição final (y) na tela onde será desenhado.
+        JA_WIDTH, JA_HEIGHT, // LARGURA E ALTURA FINAL do sprite na tela (redimensionado).
+        flip_flag
+    );
+
 }

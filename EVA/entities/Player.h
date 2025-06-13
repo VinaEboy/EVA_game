@@ -22,6 +22,7 @@
 #include <allegro5/allegro5.h>																																												
 #include "../gameflow/Assets.h"
 #include "Buster.h"
+#include <math.h>
 
 typedef enum {
     ANIM_STOPPED_GUN,          // Parado (usa o sprite player_stopped)
@@ -51,7 +52,8 @@ typedef struct Player {
     unsigned char shot; //fala se ele atirou, ou seja, se precisar criar uma entidade tiro
     int charge_shot; //o quão carregado o tiro está
     int timer_charge_shot;
-
+    
+    float dificulty;
     //status 
     float life;
 
@@ -61,7 +63,7 @@ typedef struct Player {
     int frame_timer;        // Um contador para controlar a velocidade da animação
 } Player;
 
-Player* create_player(int Y_SCREEN, float FLOOR);
+Player* create_player(float dificulty, int Y_SCREEN, float FLOOR);
 
 // ANIMATION
 
@@ -92,8 +94,6 @@ void buster_fire_3(Player *player);
 void resolve_collision_with_platform(Player *player, Platform platform, int status);
 int check_collision_with_platform(Player *player, Platform platform);
 
-// aux math
-int abs(int x);
 
 
 #endif

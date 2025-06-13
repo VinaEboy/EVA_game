@@ -30,7 +30,7 @@ game_state *game_state_create() {
     }
     player_progress->Lifes = 3;
     player_progress->Hearts = 0;
-    player_progress->Difficulty = DIFFICULTY_MEDIUM; //o default é dificuldade média
+    player_progress->dificulty = DIFFICULTY_MEDIUM; //o default é dificuldade média
     player_progress->Level_1_completed = 0;
     player_progress->Level_2_completed = 0;
     player_progress->Level_3_completed = 0;

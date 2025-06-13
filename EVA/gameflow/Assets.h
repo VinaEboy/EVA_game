@@ -28,6 +28,12 @@ typedef struct entities_sprites {
     ALLEGRO_BITMAP *bullet_1_image; //(0 a 8) frames
     ALLEGRO_BITMAP *bullet_2_image; //(0 a 5) frames
     ALLEGRO_BITMAP *bullet_3_image; //(0 a 4) frames
+
+    ALLEGRO_BITMAP *jet_alone_shot; //(0 a 3) frames; É O tiro e apenas o tiro. 36x36 cada frame em uma linha
+    ALLEGRO_BITMAP *jet_alone_squat; //(0 a 1) frames; 
+    ALLEGRO_BITMAP *jet_alone_stop; //2 frames, o da esquerda tá normal e o da direita tá atirando
+    ALLEGRO_BITMAP *jet_alone_walk; // 2 linhas com 2 frames, na linha de cima está atirando e na debaixo não
+
 } entities_sprites;
 
 typedef struct game_assets {

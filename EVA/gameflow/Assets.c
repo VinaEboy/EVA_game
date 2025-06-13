@@ -41,6 +41,10 @@ game_assets *game_assets_create() {
     sprites->bullet_2_image = NULL;
     sprites->bullet_3_image = NULL;
 
+    sprites->jet_alone_shot = NULL;
+    sprites->jet_alone_squat = NULL;
+    sprites->jet_alone_stop = NULL;
+    sprites->jet_alone_walk = NULL;
 
     assets->sprites = sprites;
 

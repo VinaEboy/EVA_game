@@ -4,14 +4,13 @@
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
-
 // Função para criar o jogador
 
-Player* create_player(int Y_SCREEN, float FLOOR_height) {
+Player* create_player(float dificulty, int Y_SCREEN, float FLOOR_height) {
     Player *player = malloc(sizeof(Player));
     if (!player) return NULL;
 
-    player->buster = buster_create();
+    player->buster = buster_create(dificulty);
     player->x = 0; // começa no começo da tela
 
     // Posiciona o jogador exatamente sobre o chão
@@ -33,7 +32,8 @@ Player* create_player(int Y_SCREEN, float FLOOR_height) {
     player->timer_charge_shot = 0;
     player->shot = 0;
 
-    player->life = 100;
+    player->dificulty = dificulty;
+    player->life = 100*(1/dificulty);
 
     player->current_frame = 0;
     player->frame_timer = 0;
@@ -302,8 +302,8 @@ void buster_fire_1(Player *player) {
     bullet_1 *shot = NULL;
 
     //olhando para direita
-    if (player->direction == 1) shot = bullet_1_create(player->center_x + 0.4*EVA_WIDTH, player->center_y ,player->direction, player->buster->shots_1);
-    else if (player->direction == -1) shot = bullet_1_create(player->center_x - EVA_WIDTH/2, player->center_y , player->direction, player->buster->shots_1);
+    if (player->direction == 1) shot = bullet_1_create(player->buster->dificulty, player->center_x + 0.4*EVA_WIDTH, player->center_y ,player->direction, player->buster->shots_1);
+    else if (player->direction == -1) shot = bullet_1_create(player->buster->dificulty,player->center_x - EVA_WIDTH/2, player->center_y , player->direction, player->buster->shots_1);
     if (shot) player->buster->shots_1 = shot;
 }
 
@@ -311,8 +311,8 @@ void buster_fire_2(Player *player) {
     bullet_2 *shot = NULL;
 
     //olhando para direita
-    if (player->direction == 1) shot = bullet_2_create(player->center_x + 0.4*EVA_WIDTH, player->center_y, player->direction, player->buster->shots_2);
-    else if (player->direction == -1) shot = bullet_2_create(player->center_x - EVA_WIDTH/2, player->center_y, player->direction, player->buster->shots_2);
+    if (player->direction == 1) shot = bullet_2_create(player->buster->dificulty,player->center_x + 0.4*EVA_WIDTH, player->center_y, player->direction, player->buster->shots_2);
+    else if (player->direction == -1) shot = bullet_2_create(player->buster->dificulty,player->center_x - EVA_WIDTH/2, player->center_y, player->direction, player->buster->shots_2);
     if (shot) player->buster->shots_2 = shot;
 }
 
@@ -320,8 +320,8 @@ void buster_fire_3(Player *player) {
     bullet_3 *shot = NULL;
 
     //olhando para direita
-    if (player->direction == 1) shot = bullet_3_create(player->center_x + 0.4*EVA_WIDTH, player->center_y, player->direction, player->buster->shots_3);
-    else if (player->direction == -1) shot = bullet_3_create(player->center_x - EVA_WIDTH/2, player->center_y, player->direction, player->buster->shots_3);
+    if (player->direction == 1) shot = bullet_3_create(player->buster->dificulty,player->center_x + 0.4*EVA_WIDTH, player->center_y, player->direction, player->buster->shots_3);
+    else if (player->direction == -1) shot = bullet_3_create(player->buster->dificulty,player->center_x - EVA_WIDTH/2, player->center_y, player->direction, player->buster->shots_3);
     if (shot) player->buster->shots_3 = shot;
 
 }
@@ -352,10 +352,5 @@ void resolve_collision_with_platform(Player *player, Platform platform, int stat
     }
 }
 
-// AUX MATH
-int abs(int x) {
-    if (x < 0)
-        x = -x;
-    return x;
-}
+
 

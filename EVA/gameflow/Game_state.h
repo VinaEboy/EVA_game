@@ -30,7 +30,7 @@ typedef struct buttom_map {
 typedef struct player_data {
     int Lifes;
     int Hearts; //extensão da barra de vida original
-    float Difficulty; 
+    float dificulty; 
 
     unsigned char Level_1_completed;
     unsigned char Level_2_completed;
