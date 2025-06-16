@@ -1,3 +1,6 @@
+- fazer que as balas não atravessem paredes
+- colocar uma parede como escudo para um inimigo
+
 - Tela de Game Over: The End of Game
 - Fazer "warning" antes dos vilões
 - Dash 

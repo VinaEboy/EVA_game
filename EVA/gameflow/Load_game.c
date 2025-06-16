@@ -23,11 +23,39 @@ load_game *load_game_info_create( ) {
     load_game_info->choose_slot_2_color = al_map_rgb(255,255,255);
     load_game_info->choose_slot_3_color = al_map_rgb(255,255,255);
     load_game_info->timer = 0;
+
+
+    FILE *arquivo = NULL;
+    arquivo = fopen("save_data/slot_1.sav","rb");
+    load_game_info->player_progress_slot_1 = malloc(sizeof(player_data));
+    if (arquivo) {
+        fread(load_game_info->player_progress_slot_1, sizeof(player_data), 1, arquivo);
+        fclose(arquivo);
+    } else
+        load_game_info->player_progress_slot_1 = NULL;
+
+    load_game_info->player_progress_slot_2 = malloc(sizeof(player_data));
+    arquivo = fopen("save_data/slot_2.sav","rb");
+    if (arquivo) {
+        fread(load_game_info->player_progress_slot_2, sizeof(player_data), 1, arquivo);
+        fclose(arquivo);
+    } else
+        load_game_info->player_progress_slot_2 = NULL;
+
+    load_game_info->player_progress_slot_3 = malloc(sizeof(player_data));
+    arquivo = fopen("save_data/slot_3.sav","rb");
+    if (arquivo) {
+        fread(load_game_info->player_progress_slot_3, sizeof(player_data), 1, arquivo);
+        fclose(arquivo);
+    } else
+        load_game_info->player_progress_slot_3 = NULL;
+    
+
     return load_game_info;
 }
 
 void start_load_game (game_state *state, load_game **load_game_info, ALLEGRO_BITMAP **load_game_image, ALLEGRO_BITMAP **default_slot_image) {
-    *load_game_image = al_load_bitmap("images/save_or_load_screen.png");
+    *load_game_image = al_load_bitmap("images/backscreen/save_or_load_screen.png");
     if (!*load_game_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
         exit(1);
@@ -179,33 +207,45 @@ void load_game_confirm(game_state *state, load_game *load_game_info, ALLEGRO_BIT
 // Lê 2 structs do arquivo: player_progress e controls
 // Como essas structs não apontam para outras structs, a implementação é simples
 void load_game_slot(game_state *state, load_game *load_game_info, int slot) {
-    FILE *arquivo;
+    if (slot == 1) {
+        if (!load_game_info->player_progress_slot_1) return;
 
-    if (slot == 1) 
-        arquivo = fopen("save_data/slot_1.sav", "rb");
-    else if (slot == 2) 
-        arquivo = fopen("save_data/slot_2.sav", "rb");
-    else
-        arquivo = fopen("save_data/slot_3.sav", "rb");
+        free(state->player_progress); 
+        state->player_progress = malloc(sizeof(player_data));
+        if (state->player_progress) 
+            memcpy(state->player_progress, load_game_info->player_progress_slot_1, sizeof(player_data));
+        
+        state->player_progress = load_game_info->player_progress_slot_1;
+        state->level_select = 1;
+        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
+    } else if (slot == 2) {
+        if (!load_game_info->player_progress_slot_2) return;
 
-    //erro na leitura, arquivo vazio, não faz nada
-    if (!arquivo) return;
+        free(state->player_progress); 
+        state->player_progress = malloc(sizeof(player_data));
+        if (state->player_progress) 
+            memcpy(state->player_progress, load_game_info->player_progress_slot_2, sizeof(player_data));
     
+        state->player_progress = load_game_info->player_progress_slot_2;
+        state->level_select = 1;
+        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
+    } else if (slot == 3) {
+        if (!load_game_info->player_progress_slot_3) return;
 
-    fread(state->player_progress, sizeof(player_data), 1, arquivo);
-    fread(state->controls, sizeof(buttom_map), 1, arquivo);
-    state->level_select = 1;
-    load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
-
-    fclose(arquivo);
+        free(state->player_progress); 
+        state->player_progress = malloc(sizeof(player_data));
+        if (state->player_progress) 
+            memcpy(state->player_progress, load_game_info->player_progress_slot_3, sizeof(player_data));
+    
+        state->player_progress = load_game_info->player_progress_slot_3;
+        state->level_select = 1;
+        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
+    }
 }
 
 
 
 void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_game_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
-
-    FILE *arquivo;
-
     int default_slot_width = al_get_bitmap_width(default_slot_image);
     int default_slot_height = al_get_bitmap_height(default_slot_image);
     
@@ -229,10 +269,8 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
             
         
-        arquivo = fopen("save_data/slot_1.sav","rb");
-        if (arquivo) {
+        if (load_game_info->player_progress_slot_1) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
-            fclose(arquivo); 
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -250,15 +288,13 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
-        arquivo = fopen("save_data/slot_2.sav","rb");
-        if (arquivo) {
+        if (load_game_info->player_progress_slot_2) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
-            fclose(arquivo);
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
             al_draw_text(font, al_map_rgb(255,255,255),X_SCREEN/2, Y_SCREEN/3, ALLEGRO_ALIGN_CENTER, "EMPTY");
-        }   
+        }  
     }
 
     if (load_game_info->slot_3_selected || load_game_info->choose_slot_3_selected) {
@@ -271,10 +307,8 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
-        arquivo = fopen("save_data/slot_3.sav","rb");
-        if (arquivo) {
+        if (load_game_info->player_progress_slot_3) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
-            fclose(arquivo);
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -291,5 +325,8 @@ void exit_load_game(game_state *state, load_game *load_game_info,ALLEGRO_BITMAP 
     state->load_game = 0;
     state->load_game_started = 0;
     al_destroy_bitmap(load_game_image);
+    free(load_game_info->player_progress_slot_1);
+    free(load_game_info->player_progress_slot_2);
+    free(load_game_info->player_progress_slot_3);
     free(load_game_info);
 }

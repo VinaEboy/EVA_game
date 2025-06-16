@@ -31,7 +31,7 @@ pause_game *pause_info_create() {
 }
 
 void start_pause (game_state *state, pause_game **pause_info, ALLEGRO_BITMAP **pause_image) {
-    *pause_image = al_load_bitmap("images/pause_screen.png");
+    *pause_image = al_load_bitmap("images/backscreen/pause_screen.png");
     if (!*pause_image) {
         fprintf(stderr, "Falha ao carregar imagem do pause\n");
         exit(1);
@@ -142,8 +142,8 @@ void pause_confirm(game_state *state,pause_game *pause_info) {
 
 void pause_draw_text(pause_game *pause_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
-    long int coord_X = X_SCREEN/2;
-    long int coord_Y = Y_SCREEN/9;
+    long int coord_X = X_SCREEN/3;
+    long int coord_Y = Y_SCREEN/4;
     long int espaçamento = Y_SCREEN/10;
 
     al_draw_text(font, pause_info->Return_to_mission_color,coord_X, coord_Y, ALLEGRO_ALIGN_CENTER, "RETURN TO MISSION");

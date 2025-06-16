@@ -11,37 +11,48 @@
 #define ANIMATION_BLINK_SPEED 40
 #define ANIMATION_SQUAT_SPEED 2
 #define ANIMATION_DAMAGE_SPEED 10
+#define ANIMATION_DEATH_SPEED 3
 
 #define CHARGE_BLINK_SPEED 9
 // Dimensões do frame do player
 #define EVA_WIDTH 256
 #define EVA_HEIGHT 256
+#define EVA_SQUAT_HEIGHT 160
+#define PLAYER_PUSHBACK 20
+#define DAMAGE_TIME 30 
+#define INVINCIBLE_TIME 75
+#define PLAYER_DEATH_FRAME_WIDTH 256
+#define PLAYER_DEATH_FRAME_HEIGHT 256
+#define PLAYER_DEATH_TIME 60
 
 #include "../mechanics/Objects.h"
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro5.h>																																												
 #include "../gameflow/Assets.h"
 #include "Buster.h"
+#include "../mechanics/Collisions.h" 
 #include <math.h>
 
 typedef enum {
-    ANIM_STOPPED_GUN,          // Parado (usa o sprite player_stopped)
-    ANIM_STOPPED_NO_GUN, //parado com a mão apontando
-    ANIM_RUN_GUN,       // Andando
-    ANIM_RUN_NO_GUN, // Andando e atirando
-    ANIM_JUMP,       // Pulando ou caindo
-    ANIM_SQUAT,     // Agachado (usa o sprite player_squat)
-    ANIM_DAMAGE,         // Recebendo dano (usa o sprite player_damage)
+    ANIM_STOPPED_GUN,          
+    ANIM_STOPPED_NO_GUN, 
+    ANIM_RUN_GUN,       
+    ANIM_RUN_NO_GUN, 
+    ANIM_JUMP,       
+    ANIM_SQUAT,     
+    ANIM_DAMAGE,       
+    ANIM_JUMP_DAMAGE, 
+    ANIM_DEATH,
 } PlayerAnimState;
 
 
 typedef struct Player {
     buster_t *buster; // é a "pistol"
 
-    float x, y;             // Posição na tela/mundo
-    float hit_box_x, hit_boy_y; //hitbox muda se estiver de pé ou agachado
-    float center_x, center_y; //centro do personagem
-    float vx, vy;           // Velocidade nos eixos x e y
+    float x, y;            
+    float hit_box_x, hit_box_y; //hitbox muda se estiver de pé ou agachado
+    float center_x, center_y; //centro 
+    float vx, vy;           
     int direction;          // Direção que está olhando (-1 para esquerda, 1 para direita)
     unsigned char is_stopped; // saber se está parado para fazer redução de velocidade
     unsigned char is_on_ground;        // Flag para saber se está no ar
@@ -49,26 +60,34 @@ typedef struct Player {
     unsigned char is_squat;
     unsigned char is_charging_shot;
     unsigned char is_taking_damage; //jogador sofre recall e não pode atirar se levar dano
+    int damage_direction; //se ele sofreu dano esse dano tem alguma direção de onde veio, o jogador vai ser jogado para essa direção
+    int damage_timer;
+    unsigned char is_invincible; //quando ele toma dano ele fica invencivel por alguns segundos pro jogador se reposicionar
+    int invincible_timer;
     unsigned char shot; //fala se ele atirou, ou seja, se precisar criar uma entidade tiro
     int charge_shot; //o quão carregado o tiro está
     int timer_charge_shot;
+    unsigned char is_dead;
     
     float dificulty;
     //status 
     float life;
+    int death_timer;
 
     // Animação
-    PlayerAnimState current_anim_state; // <<< NOVO: Guarda a animação ativa
-    int current_frame;      // O frame atual da animação (0 a 5)
-    int frame_timer;        // Um contador para controlar a velocidade da animação
+    PlayerAnimState current_anim_state; // Guarda a animação ativa
+    int current_frame;      // O frame atual da animação 
+    int frame_timer;        
 } Player;
 
-Player* create_player(float dificulty, int Y_SCREEN, float FLOOR);
+Player* create_player(float dificulty, int x, int y, int Y_SCREEN);
 
 // ANIMATION
 
 // A função que vai gerenciar a troca de animações 
 void player_set_animation_state(Player *player, PlayerAnimState new_state);
+
+void player_update_state(Player *player, int Y_SCREEN);
 
 // A função que vai avançar os frames da animação ativa 
 void player_update_animation(Player *player);
@@ -79,21 +98,19 @@ void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprit
 
 // POSITION
 
-void player_update_position (Player *player, int num_platforms, Platform *platforms);
+void player_update_position (Player *player, int num_platforms, Platform **platforms, int level_width);
 
-void update_camera(Player *player, float *camera_x, int X_SCREEN);
+void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_width);
 
 
 // tiro
 void buster_fire(Player *player);
-void buster_fire_1(Player *player);
-void buster_fire_2(Player *player);
-void buster_fire_3(Player *player);
+
 
 // colisoes
-void resolve_collision_with_platform(Player *player, Platform platform, int status);
-int check_collision_with_platform(Player *player, Platform platform);
+void resolve_collision_with_platform(Player *player, Platform *platform, int status);
+int check_collision_with_platform(Player *player, Platform *platform);
 
-
+void player_destroy(Player *player);
 
 #endif

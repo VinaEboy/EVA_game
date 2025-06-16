@@ -105,9 +105,16 @@ int main(){
 			show_load_game(&event, state, font, disp, assets->load_game_image, assets->default_slot_image, assets->load_game_info, X_SCREEN, Y_SCREEN);
 		}
 
+		else if (state->game_over) {
+			if (!state->game_over_started)
+				start_game_over(state, &assets->game_over_info, &assets->game_over_image);
+
+			show_game_over (&event,state,font, disp, assets, X_SCREEN, Y_SCREEN );
+		}
+
 		else if (state->level_1) {
 			if (!state->level_1_started)
-				start_level_1(state, &assets->level_1_info, assets->sprites, Y_SCREEN );
+				start_level_1(state, &assets->level_1_info, assets->sprites, X_SCREEN, Y_SCREEN, state->checkpoint);
 
 			joystick_handle(&event,state,assets->level_1_info->player);
 

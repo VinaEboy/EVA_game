@@ -22,6 +22,9 @@ game_state *game_state_create() {
     new_game_state->pause_started = 0;
     new_game_state->save_game = 0;
     new_game_state->save_game_started = 0;
+    new_game_state->checkpoint = 0;
+    new_game_state->game_over = 0;
+    new_game_state->game_over_started = 0;
 
     player_data *player_progress = (player_data *) malloc(sizeof(player_data));
     if (!player_progress) {

@@ -1,27 +1,23 @@
 #ifndef __BUSTER__
 #define __BUSTER__
 
-#include "Charge_shot.h"
+#include "Bullet.h"
 
 #define BUSTER_COOLDOWN 2							
 
-typedef struct {																											
+typedef struct  {																											
 	int timer;	
     float dificulty;					
-	bullet_1 *shots_1;
-    bullet_2 *shots_2;
-    bullet_3 *shots_3;							
+	bullet *shots;
 } buster_t;														
 
 buster_t* buster_create(float dificulty);																								
-bullet_1* buster_shot_1(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster);
-bullet_2* buster_shot_2(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster);
-bullet_2* buster_shot_2(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster);									
+bullet* buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster, int type);
 void buster_destroy(buster_t *buster);						
 
-void update_bullets_1(float camera_x, buster_t *buster, int X_SCREEN);
-void update_bullets_2(float camera_x, buster_t *buster, int X_SCREEN);
-void update_bullets_3(float camera_x, buster_t *buster, int X_SCREEN);
+void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int level_width);
+
+//////////// JA
  
 typedef struct {
     int timer;
@@ -30,4 +26,8 @@ typedef struct {
 }  ja_buster_t;
 
 ja_buster_t *ja_buster_create(float dificulty);
+void update_ja_bullets(float camera_x, ja_buster_t *ja_buster, int X_SCREEN);
+ja_bullet* ja_buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, ja_buster_t *ja_buster);
+void ja_buster_destroy(ja_buster_t *ja_buster);
+
 #endif						

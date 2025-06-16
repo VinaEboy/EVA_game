@@ -9,6 +9,7 @@
 #include "Pause.h"
 #include "Save_game.h"
 #include "Load_game.h"
+#include "Game_over.h"
 #include <allegro5/allegro.h>
 
 #define DIFFICULTY_EASY 0.75
@@ -62,6 +63,9 @@ typedef struct game_state {
     unsigned char pause_started;
     unsigned char save_game;
     unsigned char save_game_started;
+    unsigned char game_over;
+    unsigned char game_over_started;
+    int checkpoint; //serve para saber se está em algum checkpoint na fase 
     buttom_map *controls;
     player_data *player_progress;
 } game_state;

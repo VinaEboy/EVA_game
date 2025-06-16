@@ -30,7 +30,7 @@ level_select *level_select_info_create() {
 }   
 
 void start_level_select(game_state *state, level_select **level_select_info, ALLEGRO_BITMAP **level_select_image ) {
-    *level_select_image = al_load_bitmap("images/level_select.png");
+    *level_select_image = al_load_bitmap("images/backscreen/level_select_screen.png");
     if (!*level_select_image) {
         fprintf(stderr, "Falha ao carregar imagem da seleção de fase\n");
         exit(1);

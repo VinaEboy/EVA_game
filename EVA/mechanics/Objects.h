@@ -7,6 +7,8 @@ typedef struct {
     float height;   // Altura da plataforma (geralmente não muito importante para o chão)
 } Platform;
 
+Platform *create_platform(float x, float y, float width, float height);
 
+void platform_destroy( Platform *platform);
 
 #endif

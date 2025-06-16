@@ -15,12 +15,12 @@ void joystick_down(Player *player);
 void joystick_stand_up(Player *player);
 
 
-// =========================================================================
+
 //  FUNÇÃO DE UPDATE (Contínuo) - Chamada DENTRO do timer
-// =========================================================================
-// CORREÇÃO: Removido o parâmetro 'ALLEGRO_EVENT *event', pois esta função não depende de eventos.
 void joystick_update(game_state *state, Player *player) {
     if (!player) return;
+    if(player->is_taking_damage) return; //o jogador não pode fazer interação com o personagem se estiver levando dano
+    if(player->life <= 0) return;
 
     ALLEGRO_KEYBOARD_STATE key_state;
     al_get_keyboard_state(&key_state);
@@ -67,11 +67,11 @@ void joystick_update(game_state *state, Player *player) {
 
     if (player->is_charging_shot) {
         player->timer_charge_shot++;
-        if (player->charge_shot == 0 && player->timer_charge_shot > BULLET_2_TIME) {
-            player->charge_shot = 1;
-            player->timer_charge_shot = 0;
-        } else if (player->charge_shot == 1 && player->timer_charge_shot > BULLET_3_TIME) {
+        if (player->charge_shot == 1 && player->timer_charge_shot > BULLET_2_TIME) {
             player->charge_shot = 2;
+            player->timer_charge_shot = 0;
+        } else if (player->charge_shot == 2 && player->timer_charge_shot > BULLET_3_TIME) {
+            player->charge_shot = 3;
             player->timer_charge_shot = 0;
         }
     }
@@ -79,21 +79,18 @@ void joystick_update(game_state *state, Player *player) {
 }
 
 
-// =========================================================================
 //  FUNÇÃO DE HANDLE (Eventos Pontuais) - Chamada a CADA evento
-// =========================================================================
 void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
     if (!player || !event) return;
 
-    // Ações que acontecem UMA VEZ ao PRESSIONAR uma tecla
-    if (event->type == ALLEGRO_EVENT_KEY_DOWN) {
-        if (event->keyboard.keycode == state->controls->JUMP) {
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN && event->keyboard.keycode == state->controls->PAUSE) state->pause = 1;
+    
+    
+    if(player->is_taking_damage) return; //o jogador não pode fazer interação com o personagem se estiver levando dano
+    if(player->life <= 0) return;
+    
+    if (event->type == ALLEGRO_EVENT_KEY_DOWN && event->keyboard.keycode == state->controls->JUMP) 
             joystick_jump(player);
-        }
-        else if (event->keyboard.keycode == state->controls->PAUSE) {
-            state->pause = 1;
-        }
-    }
 
     
     else if (event->type == ALLEGRO_EVENT_KEY_UP) {

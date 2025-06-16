@@ -17,6 +17,8 @@ game_assets *game_assets_create() {
     assets->save_game_image = NULL;
     assets->load_game_info = NULL;
     assets->load_game_image = NULL;
+    assets->game_over_image = NULL;
+    assets->game_over_info = NULL;
 
 
     entities_sprites *sprites = malloc(sizeof(entities_sprites));
@@ -33,9 +35,12 @@ game_assets *game_assets_create() {
     sprites->player_squat =  NULL;
     sprites->charging_shot = NULL;
     sprites->life_bar = NULL;
+    sprites->player_jump_damage = NULL;
+    sprites->player_death = NULL;
     
     sprites->level_1_background = NULL;
     sprites->level_1_ground = NULL;
+    sprites->level_1_background_final = NULL;
 
     sprites->bullet_1_image = NULL;
     sprites->bullet_2_image = NULL;

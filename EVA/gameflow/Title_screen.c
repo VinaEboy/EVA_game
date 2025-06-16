@@ -34,7 +34,7 @@ title_screen *title_screen_info_create() {
 
 //carrega imagem e inicializa valores necessários para a tela inicial rodar
 void start_title_screen(game_state *state, title_screen **title_screen_info, ALLEGRO_BITMAP **title_screen_image ) {
-    *title_screen_image = al_load_bitmap("images/title_screen.png");
+    *title_screen_image = al_load_bitmap("images/backscreen/title_screen.png");
     if (!*title_screen_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela principal\n");
         exit(1);

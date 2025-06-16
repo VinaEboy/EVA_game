@@ -10,6 +10,7 @@ struct pause_game ;
 struct load_game ;
 struct save_game;
 struct level_1;
+struct game_over;
 
 typedef struct entities_sprites {
     ALLEGRO_BITMAP *player_run_no_gun;
@@ -21,8 +22,11 @@ typedef struct entities_sprites {
     ALLEGRO_BITMAP *player_squat;
     ALLEGRO_BITMAP *charging_shot;
     ALLEGRO_BITMAP *life_bar;
+    ALLEGRO_BITMAP *player_jump_damage;
+    ALLEGRO_BITMAP *player_death;
 
     ALLEGRO_BITMAP *level_1_background;
+    ALLEGRO_BITMAP *level_1_background_final; 
     ALLEGRO_BITMAP *level_1_ground;
 
     ALLEGRO_BITMAP *bullet_1_image; //(0 a 8) frames
@@ -50,6 +54,8 @@ typedef struct game_assets {
     struct load_game *load_game_info;
     ALLEGRO_BITMAP *load_game_image;
     struct level_1 *level_1_info;
+    ALLEGRO_BITMAP *game_over_image;
+    struct game_over *game_over_info;
 
     entities_sprites *sprites; //sprites do level_1
 } game_assets;

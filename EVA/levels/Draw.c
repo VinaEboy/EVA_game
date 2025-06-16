@@ -1,43 +1,130 @@
 #include "Draw.h"
 #include <math.h> // para a função seno que oscila o brilho
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro.h>
 #include <stdio.h>
 
 // BACKGROUND
 
 void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, float FLOOR) {
-    ALLEGRO_BITMAP *background = sprites->level_1_background;
-    ALLEGRO_BITMAP *ground = sprites->level_1_ground;
 
-    int background_width = al_get_bitmap_width(background);
-    int background_height = al_get_bitmap_height(background);
+    ALLEGRO_BITMAP *bg_tile_A = sprites->level_1_background;
+    ALLEGRO_BITMAP *bg_tile_B = sprites->level_1_background_final;
 
-    int ground_height = al_get_bitmap_height(ground);  // altura real do bitmap do chão
-    int background_screen_height = Y_SCREEN - FLOOR;
+    if (!bg_tile_A || !bg_tile_B) return;
+    
+    float current_world_x = 0;
+    long tile_width = X_SCREEN;
+    const int num_tiles = 7;
 
-    // Clamp da câmera para não passar da imagem
-    if (camera_x < 0) camera_x = 0;
-    if (camera_x > background_width - X_SCREEN) camera_x = background_width - X_SCREEN;
+    for (int i = 0; i < num_tiles; i++) {
+        ALLEGRO_BITMAP *current_tile_image = NULL;
+        int flip_flag = 0; // definir a priori
 
-    // --- Desenha o fundo, apenas na área acima do chão ---
-    al_draw_scaled_bitmap(
-        background,
-        camera_x, 0,                      // sx, sy
-        X_SCREEN, background_height,             // sw, sh (total da imagem de fundo)
-        0, 0,                            // dx, dy (topo da tela)
-        X_SCREEN, background_screen_height, // dw, dh (desenha até onde começa o chão)
-        0
-    );
+        switch (i) {
+            case 0: 
+                current_tile_image = bg_tile_A;
+                flip_flag = 0;
+                break;
+            case 1: 
+                current_tile_image = bg_tile_A;
+                flip_flag = ALLEGRO_FLIP_HORIZONTAL;
+                break;
+            case 2: 
+                current_tile_image = bg_tile_A;
+                flip_flag = 0;
+                break;
+            case 3: 
+                current_tile_image = bg_tile_A;
+                flip_flag = ALLEGRO_FLIP_HORIZONTAL;
+                break;
+            case 4: 
+                current_tile_image = bg_tile_A;
+                flip_flag = 0;
+                break;
+            case 5: 
+                current_tile_image = bg_tile_A;
+                flip_flag = ALLEGRO_FLIP_HORIZONTAL;
+                break;
+            case 6:
+                current_tile_image = bg_tile_B;
+                flip_flag = 0;
+                break;
+        }
 
-    // --- Desenha o chão exatamente no rodapé da tela ---
-    al_draw_scaled_bitmap(
-        ground,
-        camera_x, 0,                   // sx, sy
-        X_SCREEN, ground_height,      // sw, sh
-        0, background_screen_height,  // dx, dy (posição na tela)
-        X_SCREEN, FLOOR, // dw, dh (ocupa os últimos 7% da tela)
-        0
-    );
+
+        // Verifica se o tile atual está dentro da área visível da câmera (Culling)
+        if ((current_world_x + tile_width) >= camera_x && current_world_x <= (camera_x + X_SCREEN)) {
+            
+            float draw_x = current_world_x - camera_x;
+
+            al_draw_scaled_bitmap(
+                current_tile_image,
+                0, 0,                                // (sx, sy) Pega a imagem de origem inteira
+                al_get_bitmap_width(current_tile_image), // (sw) Largura da imagem de origem
+                al_get_bitmap_height(current_tile_image), // (sh) Altura da imagem de origem
+                draw_x, 0,                           // (dx, dy) Posição na tela
+                tile_width, Y_SCREEN - FLOOR, // (dw, dh) Tamanho final, escalando a altura
+                flip_flag
+            );
+        }
+
+        // Avança a posição X para o próximo tile
+        current_world_x += tile_width;
+    }
+
+}
+
+//reescrever comentários
+void draw_level_1_ground(float camera_x, Platform *current_platform, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN) {
+    
+    // Pega a imagem que será usada como ladrilho para o chão
+    ALLEGRO_BITMAP *ground_tile = sprites->level_1_ground; 
+    
+    // Pega as dimensões do ladrilho para os cálculos
+    const float tile_original_width = al_get_bitmap_width(ground_tile);
+    const float tile_original_height = al_get_bitmap_height(ground_tile);
+
+
+    // Otimização: Se a plataforma estiver totalmente fora da tela, nem tenta desenhar.
+    if ((current_platform->x + current_platform->width) < camera_x || current_platform->x > (camera_x + X_SCREEN)) {
+        return; 
+    }
+
+    float drawn_width = 0; // Controla o quanto da plataforma já foi desenhado
+
+    // Continua desenhando ladrilhos até que toda a largura da plataforma seja preenchida
+    while (drawn_width < current_platform->width) {
+            
+        float tile_dest_x = current_platform->x + drawn_width; // Posição X para desenhar o ladrilho atual
+        float remaining_width = current_platform->width - drawn_width; // O que falta desenhar da plataforma
+            
+        float source_width_to_draw = tile_original_width; // Por padrão, desenha o ladrilho inteiro
+
+        // Se o que falta for menor que um ladrilho completo, ajusta para desenhar só um pedaço
+        if (remaining_width < tile_original_width) {
+            source_width_to_draw = remaining_width;
+        }
+
+        al_draw_scaled_bitmap(
+            ground_tile,
+            // --- Fonte (Source) ---
+            0, 0,                             // (sx, sy) Pega o ladrilho desde o seu canto superior esquerdo.
+            source_width_to_draw,             // (sw) Largura do recorte na imagem original (ladrilho inteiro ou parcial).
+            tile_original_height,             // (sh) Altura do recorte na imagem original.
+                
+            // --- Destino (Destination) ---
+            tile_dest_x - camera_x,           // (dx) Posição X na tela (ajustada pela câmera).
+            current_platform->y,               // (dy) Posição Y na tela.
+            source_width_to_draw,             // (dw) A largura final do ladrilho na tela (sem esticar horizontalmente).
+            current_platform->height,          // (dh) A altura final, redimensionada para a altura da plataforma.
+            0
+        );
+            
+        // Atualiza o total já desenhado
+        drawn_width += source_width_to_draw;
+    }
+    
 }
 
 // PLAYER ////////////////////////////
@@ -45,6 +132,12 @@ void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SC
 
 //Função para desenhar o jogador
 void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
+
+    if (player->life <= 0) {
+        draw_player_death(camera_x, player, sprites);
+        draw_life_bar_EVA(camera_x, player, sprites);
+        return;
+    }
 
     ALLEGRO_BITMAP *sprite_sheet = NULL;
     int frames_per_row = 0;
@@ -65,8 +158,8 @@ void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
     if (player->is_charging_shot)
         draw_charging_EVA(camera_x, player, &tint_color, sprites);
 
-
-    al_draw_tinted_bitmap_region(
+    if (!player->is_invincible || (player->invincible_timer / 4) % 2 != 0) {
+        al_draw_tinted_bitmap_region(
         sprite_sheet,
         tint_color,          // A cor de tingimento que calculamos
         frame_x, frame_y,
@@ -74,92 +167,56 @@ void draw_player(float camera_x, Player *player, entities_sprites *sprites) {
         player->x - camera_x, 
         player->y,
         flip_flag
-    );
+        );
+    
+    }
+
+
 
     draw_life_bar_EVA(camera_x, player, sprites);
 
 }
 
 
-//por enquanto são retangulos e não estou usando os sprites
 void draw_bullets(float camera_x, Player *player,entities_sprites *sprites) {
-    bullet_1 *shot_1 = player->buster->shots_1;
-    ALLEGRO_BITMAP *sprite_sheet_1 = sprites->bullet_1_image;
+    bullet *shot = player->buster->shots;
 
-    while(shot_1 != NULL) {
+    ALLEGRO_BITMAP *sprite_sheet = NULL;
+
+    while(shot != NULL) {
+        bullet_sprite(shot, &sprite_sheet, sprites);
+
+        if (sprite_sheet == NULL) {
+            printf("AAA\n");
+            shot = (bullet*)shot->next;
+            continue; 
+        }
+
+        float original_width = al_get_bitmap_width(sprite_sheet);
+        float original_height = al_get_bitmap_height(sprite_sheet);
+
         // Posição do frame na folha de sprites (source_x)
-        float sx = shot_1->current_frame * 24;
+        float sx = shot->current_frame * (original_width/shot->frames);
 
         // Posição na tela (destination_x), ajustada para centralizar o sprite
         // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_1->x - camera_x) - (BULLET_1_WIDTH / 2.0f);
-        float dy = shot_1->y - (BULLET_1_HEIGHT / 2.0f);
+        float dx = (shot->x - camera_x) - (shot->width / 2.0f);
+        float dy = shot->y - (shot->height / 2.0f);
 
         int flags;
-        if (shot_1->trajectory == -1) flags = ALLEGRO_FLIP_HORIZONTAL;
+        if (shot->trajectory == -1) flags = ALLEGRO_FLIP_HORIZONTAL;
         else flags = 0;
 
-        al_draw_scaled_bitmap(sprite_sheet_1,
+        al_draw_scaled_bitmap(sprite_sheet,
                                 sx, 0,           // Posição (sx, sy) e
-                                24, 36, // tamanho do frame na imagem original
+                                original_width/shot->frames, original_height, // tamanho do frame na imagem original
                                 dx, dy,            // Posição (dx, dy) e
-                                BULLET_1_WIDTH , BULLET_1_HEIGHT, // tamanho (dw, dh) final na tela
+                                shot->width , shot->height, // tamanho (dw, dh) final na tela
                                 flags);
 
-        shot_1 = (bullet_1*)shot_1->next;
+        shot = (bullet*)shot->next;
     }
 
-    bullet_2 *shot_2 = player->buster->shots_2;
-    ALLEGRO_BITMAP *sprite_sheet_2 = sprites->bullet_2_image;
-
-    while(shot_2 != NULL) {
-        // Posição do frame na folha de sprites (source_x)
-        float sx = shot_2->current_frame * 30;
-
-        // Posição na tela (destination_x), ajustada para centralizar o sprite
-        // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_2->x - camera_x) - (BULLET_2_WIDTH  / 2.0f);
-        float dy = shot_2->y - (BULLET_2_HEIGHT / 2.0f);
-
-        int flags;
-        if (shot_2->trajectory == -1) flags = ALLEGRO_FLIP_HORIZONTAL;
-        else flags = 0;
-
-        al_draw_scaled_bitmap(sprite_sheet_2,
-                                sx, 0,           // Posição (sx, sy) e
-                                30, 36, // tamanho do frame na imagem original
-                                dx, dy,            // Posição (dx, dy) e
-                                BULLET_2_WIDTH , BULLET_2_HEIGHT, // tamanho (dw, dh) final na tela
-                                flags);
-
-        shot_2 = (bullet_2*)shot_2->next;
-    }
-
-    bullet_3 *shot_3 = player->buster->shots_3;
-    ALLEGRO_BITMAP *sprite_sheet_3 = sprites->bullet_3_image;  
-
-    while(shot_3 != NULL) {
-        // Posição do frame na folha de sprites (source_x)
-        float sx = shot_3->current_frame * 64;
-
-        // Posição na tela (destination_x), ajustada para centralizar o sprite
-        // Posição do tiro - deslocamento da câmera - metade da largura do sprite
-        float dx = (shot_3->x - camera_x) - (BULLET_3_WIDTH  / 2.0f);
-        float dy = shot_3->y - (BULLET_3_HEIGHT / 2.0f);
-
-        int flags;
-        if (shot_3->trajectory == -1) flags = ALLEGRO_FLIP_HORIZONTAL;
-        else flags = 0;
-
-        al_draw_scaled_bitmap(sprite_sheet_3,
-                                sx, 0,           // Posição (sx, sy) e
-                                64, 36, // tamanho do frame na imagem original
-                                dx, dy,            // Posição (dx, dy) e
-                                BULLET_3_WIDTH, BULLET_3_HEIGHT, // tamanho (dw, dh) final na tela
-                                flags);
-
-        shot_3 = (bullet_3*)shot_3->next;
-    }
 }
 
 // AUXILIARES dentro do proprio draw
@@ -174,17 +231,17 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
     int target_r = 255, target_g = 255, target_b = 255; 
 
     switch (player->charge_shot) {
-        case 0: // Carga Nível 1 
+        case 1: // Carga Nível 1 
             target_r = 255;
             target_g = 255;
             target_b = 50; // Pouco azul para um amarelo bem "aceso"
             break;
-        case 1: // Carga Nível 2 
+        case 2: // Carga Nível 2 
             target_r = 255;
             target_g = 160; // Menos verde para criar um tom de laranja forte
             target_b = 40;
             break;
-        case 2: // Carga Nível 3 
+        case 3: // Carga Nível 3 
             target_r = 50;
             target_g = 255; // Verde no máximo
             target_b = 50; // Pouco vermelho e azul para um verde puro e poderoso
@@ -200,9 +257,9 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
     *tint_color = al_map_rgb(final_r, final_g, final_b);
 
     float sx = 0; // Posição X do frame na imagem
-    if (player->charge_shot == 1) {
+    if (player->charge_shot == 2) {
         sx = 0;   // Usa o frame da esquerda (0 a 255)
-    } else { // charge_shot == 2
+    } else { // charge_shot == 3
         sx = 256; // Usa o frame da direita (256 a 511)
     }
 
@@ -214,7 +271,7 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
     // Usa o blender aditivo para o efeito de brilho
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ONE);
 
-    if (player->charge_shot == 1 || player->charge_shot == 2)
+    if (player->charge_shot == 2 || player->charge_shot == 3)
         al_draw_tinted_bitmap_region(
             sprites->charging_shot,
             *tint_color,
@@ -274,13 +331,54 @@ void draw_life_bar_EVA(float camera_x, Player *player, entities_sprites *sprites
     }
 }
 
+void draw_player_death(float camera_x, Player *player, entities_sprites *sprites) {
+    if (!sprites->player_death) {
+        return;
+    }
+
+
+    float pa = 5 + 0.2*player->current_frame; //eu quero que as bolinhas se expandam por isso aumento o tamanho destino em uma PA
+
+    float sx = player->current_frame * 42;
+    float sy = 0; // O sprite está todo na primeira linha
+    float sw = 42;
+    float sh = 50;
+
+    // Parâmetros de Destino (Destination)
+    float dx = player->x - camera_x;
+    float dy = player->y;
+
+    // Centro de Rotação/Escala (cx, cy)
+    // Este é o ponto DENTRO DO SPRITE (na região de origem) que servirá como âncora.
+    // Para o comportamento padrão (desenhar a partir do canto superior esquerdo), use 0, 0.
+    float cx = 0;
+    float cy = 0;
+
+
+    ALLEGRO_COLOR tint = al_map_rgb(255, 255, 255);
+
+
+    al_draw_tinted_scaled_rotated_bitmap_region(
+        sprites->player_death,  // O bitmap completo
+        sx, sy, sw, sh,         // A região do frame atual para copiar
+        tint,                   // A cor (branca, para não alterar)
+        cx, cy,                 // O centro da transformação (canto superior esquerdo)
+        dx, dy,                 // A posição final na tela
+        pa,     // Escala no eixo X
+        pa,     // Escala no eixo Y
+        0,                    // Ângulo de rotação (0 = sem rotação)
+        0                       // Flags (0 = sem espelhamento)
+    );
+}
+
+
 // JA ///////////////////////////
 
 void draw_ja(float camera_x, Jet_alone *ja, entities_sprites *sprites) {
     ALLEGRO_BITMAP *sprite_sheet = NULL;
 
     int row = 0;
-    if (ja->state == JA_WALK && ja->is_shooting)
+    if (ja->state == JA_WALK && !ja->is_shooting)
         row = 1;
     ja_sprite (ja, &sprite_sheet, sprites);
     if (!sprite_sheet) {
@@ -298,15 +396,45 @@ void draw_ja(float camera_x, Jet_alone *ja, entities_sprites *sprites) {
     //a priori não tem tingimento, mas se ele levar dano tem
     ALLEGRO_COLOR tint_color = al_map_rgb(255, 255, 255);
 
-    al_draw_tinted_scaled_bitmap(
-        sprite_sheet,        // O bitmap de onde vamos tirar o sprite.
-        tint_color,          // A cor de tingimento.
-        frame_x, frame_y,    // Posição (x,y) do frame na spritesheet.
-        512, 512,            // Largura e Altura DO FRAME ORIGINAL na spritesheet.
-        ja->x - camera_x,    // Posição final (x) na tela onde será desenhado.
-        ja->y,               // Posição final (y) na tela onde será desenhado.
-        JA_WIDTH, JA_HEIGHT, // LARGURA E ALTURA FINAL do sprite na tela (redimensionado).
-        flip_flag
-    );
+    if(ja->is_taking_damage) ja->is_taking_damage = 0;
+    else
+        al_draw_tinted_scaled_bitmap(
+            sprite_sheet,        // O bitmap de onde vamos tirar o sprite.
+            tint_color,          // A cor de tingimento.
+            frame_x, frame_y,    // Posição (x,y) do frame na spritesheet.
+            511, 511,            // Largura e Altura DO FRAME ORIGINAL na spritesheet.
+            ja->x - camera_x,    // Posição final (x) na tela onde será desenhado.
+            ja->y,               // Posição final (y) na tela onde será desenhado.
+            JA_WIDTH, JA_HEIGHT, // LARGURA E ALTURA FINAL do sprite na tela (redimensionado).
+            flip_flag
+        );
 
+}
+
+void draw_ja_bullets(float camera_x, Jet_alone *ja,entities_sprites *sprites) {
+    ja_bullet *shot = ja->ja_buster->shots;
+    ALLEGRO_BITMAP *sprite_sheet = sprites->jet_alone_shot;
+
+    while(shot != NULL) {
+        // Posição do frame na folha de sprites (source_x)
+        float sx = shot->current_frame * 36;
+
+        // Posição na tela (destination_x), ajustada para centralizar o sprite
+        // Posição do tiro - deslocamento da câmera - metade da largura do sprite
+        float dx = (shot->x - camera_x) - (JA_BULLET_WIDTH / 2.0f);
+        float dy = shot->y - (JA_BULLET_HEIGHT / 2.0f);
+
+        int flags;
+        if (shot->trajectory == -1) flags = ALLEGRO_FLIP_HORIZONTAL;
+        else flags = 0;
+
+        al_draw_scaled_bitmap(sprite_sheet,
+                                sx, 0,           // Posição (sx, sy) e
+                                36, 36, // tamanho do frame na imagem original
+                                dx, dy,            // Posição (dx, dy) e
+                                JA_BULLET_WIDTH , JA_BULLET_HEIGHT, // tamanho (dw, dh) final na tela
+                                flags);
+
+        shot = (ja_bullet*)shot->next;
+    }
 }

@@ -8,6 +8,8 @@
 #include <allegro5/allegro_primitives.h>	
 #include "Game_state.h"
 
+struct player_data;
+
 typedef struct load_game {
     unsigned char slot_1_selected;
     unsigned char choose_slot_1_selected;
@@ -20,6 +22,11 @@ typedef struct load_game {
     ALLEGRO_COLOR choose_slot_3_color;     
     unsigned char return_to_title_screen_selected;
     unsigned char return_to_title_screen;
+
+    struct player_data *player_progress_slot_1;
+    struct player_data *player_progress_slot_2;
+    struct player_data *player_progress_slot_3;
+
     int timer;
 } load_game;
 

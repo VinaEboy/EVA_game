@@ -8,6 +8,8 @@
 #include <allegro5/allegro_primitives.h>	
 #include "Game_state.h"
 
+struct player_data;
+
 typedef struct save_game {
     unsigned char slot_1_selected;
     unsigned char choose_slot_1_selected;
@@ -20,6 +22,11 @@ typedef struct save_game {
     ALLEGRO_COLOR choose_slot_3_color;     
     unsigned char return_to_stage_select_selected;
     unsigned char return_to_stage_select;
+
+    struct player_data *player_progress_slot_1;
+    struct player_data *player_progress_slot_2;
+    struct player_data *player_progress_slot_3;
+
     int timer;
 } save_game;
 
@@ -35,6 +42,6 @@ void save_game_left_move(save_game *save_game_info );
 void save_game_right_move(save_game *save_game_info );
 void save_game_confirm(game_state *state, save_game *save_game_info, ALLEGRO_BITMAP *save_game_image);
 void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_game_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN);
-void save_game_slot(game_state *state, int slot);
+void save_game_slot(game_state *state, save_game *save_game_info, int slot);
 void exit_save_game(game_state *state, save_game *save_game_info,ALLEGRO_BITMAP *save_game_image);
 #endif

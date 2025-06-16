@@ -1,23 +1,18 @@
 Para hoje:
-- colocar em algum modulo as funçoes draw player, draw bullets...
-- Fazer o png do game over
-- fazer o pixalt da barra de vida com retangulos de vida a serem preenchidos
-- fazer sprites personagem
+- sprites do vilão
+- ATIRAR PARA CIMA
  
-Fazer algum inimigo que atira em uma altura que
-agachado não te atinja
-
 Ficou para trás e falta fazer:
-- Shinji acompanhar na tela de seleção
 - Escrever de fato o progresso na fase de save/load, assim como calcular tempo de jogo
+- colocar música
 
 Falta na fase 1:
-- Barra de vida com cara do personagem
 - sprites do vilão
-- sprites dos inimigos
+- o vilão em si, com barra de vida colisão lógica...
 - "Travar" o chefão antes de derrotar inimigos
 
 Se der tempo:
+- Shinji acompanhar na tela de seleção
 - Tiro diferente para um poder
 - fase 2
 - Dash
