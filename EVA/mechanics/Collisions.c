@@ -12,9 +12,9 @@
 int player_check_collision_with_platform(struct Player *player, Platform *platform) {
     // Coordenadas do frame atual
     float player_x1 = player->x;
-    float player_x2 = player->x + EVA_WIDTH;
+    float player_x2 = player->x + player->width;
     float player_y1 = player->y;
-    float player_y2 = player->y + EVA_HEIGHT;
+    float player_y2 = player->y + player->height;
 
     float plat_x1 = platform->x;
     float plat_x2 = platform->x + platform->width;
@@ -66,7 +66,7 @@ void player_resolve_collision_with_platform(struct Player *player, Platform *pla
 
     //colidiu com a plataforma verticalmente
     if (status == 1) {
-        player->y = platform->y - EVA_HEIGHT;
+        player->y = platform->y - player->height;
         player->vy = 0;
         player->is_on_ground = 1;
     }
@@ -75,7 +75,7 @@ void player_resolve_collision_with_platform(struct Player *player, Platform *pla
         player->vy = 0;
     }
     else if (status == 3) {
-        player->x = platform->x - EVA_WIDTH;
+        player->x = platform->x - player->width;
     }
     else if (status == 4) {
         player->x = platform->x + platform->width;
@@ -87,9 +87,9 @@ void player_resolve_collision_with_platform(struct Player *player, Platform *pla
 int ja_check_collision_with_platform(struct Jet_alone *ja, Platform *platform) {
     // Coordenadas do frame atual do Jet Alone
     float ja_x1 = ja->x;
-    float ja_x2 = ja->x + JA_WIDTH;
+    float ja_x2 = ja->x + ja->width;
     float ja_y1 = ja->y;
-    float ja_y2 = ja->y + JA_HEIGHT;
+    float ja_y2 = ja->y + ja->height;
 
     // Coordenadas da plataforma
     float plat_x1 = platform->x;
@@ -135,7 +135,7 @@ int ja_check_collision_with_platform(struct Jet_alone *ja, Platform *platform) {
 void ja_resolve_collision_with_platform(struct Jet_alone *ja, Platform *platform, int status) {
     switch (status) {
         case 1: // Pousou no topo
-            ja->y = platform->y - JA_HEIGHT;
+            ja->y = platform->y - ja->height;
             ja->vy = 0;
             ja->is_on_ground = 1;
             break;
@@ -144,7 +144,7 @@ void ja_resolve_collision_with_platform(struct Jet_alone *ja, Platform *platform
             ja->vy = 0;
             break;
         case 3: // Colidiu vindo da esquerda
-            ja->x = platform->x - JA_WIDTH;
+            ja->x = platform->x - ja->width;
             break;
         case 4: // Colidiu vindo da direita
             ja->x = platform->x + platform->width;
@@ -155,6 +155,7 @@ void ja_resolve_collision_with_platform(struct Jet_alone *ja, Platform *platform
 
 // colisão de tiros e inimigos
 
+//// INIMIGO JA
 
 void check_player_hit_by_ja_bullets(Player *player, Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn) {
     if (player->is_invincible || player->life <= 0) {
@@ -298,7 +299,6 @@ void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **je
                     current_ja->is_taking_damage = 1;
 
                     // Verifica se o Jet_alone morreu após o dano
-                    //tem que dar free
                     if (current_ja->life <= 0) {
                         did_jet_died[i] = 1; 
                     }
@@ -316,5 +316,125 @@ void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **je
                 }
             }
         }
+    }
+}
+
+/////// CHEFAO SACHIEL
+
+void check_player_hit_by_sa_bullets(struct Player *player, struct Sachiel *sa) {
+    if (player->is_invincible || player->life <= 0) {
+        return;
+    }
+
+    float player_x1 = player->center_x - player->hit_box_x / 2;
+    float player_x2 = player->center_x + player->hit_box_x / 2;
+    float player_y1 = player->center_y - player->hit_box_y / 2;
+    float player_y2 = player->center_y + player->hit_box_y / 2;
+
+    if (sa && sa->life > 0) {
+        struct sa_bullet *prev = NULL;
+        struct sa_bullet *current = sa->sa_buster->shots;
+
+        while (current) {
+            float bullet_x1 = current->x;
+            float bullet_x2 = current->x + current->hit_box_x;
+            float bullet_y1 = current->y;
+            float bullet_y2 = current->y + current->hit_box_y;
+
+            unsigned char no_collision = (player_x2 <= bullet_x1 || player_x1 >= bullet_x2 ||
+                                          player_y2 <= bullet_y1 || player_y1 >= bullet_y2);
+
+            if (no_collision) {
+                prev = current;
+                current = current->next;
+            } else {
+                player->life -= current->damage;
+                player->damage_direction = current->trajectory;
+                player->is_taking_damage = 1;
+
+                struct sa_bullet *bullet_to_remove = current;
+
+                if (prev) {
+                    prev->next = current->next;
+                } else {
+                    sa->sa_buster->shots = current->next;
+                }
+
+                current = current->next;
+                sa_bullet_destroy(bullet_to_remove);
+            }
+        }
+    }
+}
+
+void check_sachiel_hit_by_player_bullets(struct Player *player, struct Sachiel *sa) {
+    if (sa->is_invencible || sa->life <= 0) {
+        return;
+    }
+
+    float sachiel_x1 = sa->x;
+    float sachiel_x2 = sa->x + sa->hit_box_x;
+    float sachiel_y1 = sa->y;
+    float sachiel_y2 = sa->y + sa->hit_box_y;
+    
+    struct bullet *prev = NULL;
+    struct bullet *current = player->buster->shots;
+
+    while (current) {
+        float bullet_x1 = current->x;
+        float bullet_x2 = current->x + current->hit_box_x;
+        float bullet_y1 = current->y;
+        float bullet_y2 = current->y + current->hit_box_y;
+
+        unsigned char no_collision = (sachiel_x2 <= bullet_x1 || sachiel_x1 >= bullet_x2 ||
+                                      sachiel_y2 <= bullet_y1 || sachiel_y1 >= bullet_y2);
+        
+        if (no_collision) {
+            prev = current;
+            current = (struct bullet*)current->next;
+        } else {
+            sa->life -= current->damage;
+            sa->hit_take = 1;
+
+            struct bullet *bullet_to_remove = current;
+
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                player->buster->shots = (struct bullet*)current->next;
+            }
+
+            current = (struct bullet*)current->next;
+            bullet_destroy(bullet_to_remove);
+        }
+    }
+}
+
+void check_player_collision_with_sachiel(struct Player *player, struct Sachiel *sa) {
+    if (player->is_invincible || player->life <= 0 || sa->life <= 0) {
+        return;
+    }
+
+    float player_x1 = player->center_x - player->hit_box_x / 2;
+    float player_x2 = player->center_x + player->hit_box_x / 2;
+    float player_y1 = player->center_y - player->hit_box_y / 2;
+    float player_y2 = player->center_y + player->hit_box_y / 2;
+
+    float sachiel_x1 = sa->x;
+    float sachiel_x2 = sa->x + sa->hit_box_x;
+    float sachiel_y1 = sa->y;
+    float sachiel_y2 = sa->y + sa->hit_box_y;
+
+    unsigned char no_collision = (player_x2 <= sachiel_x1 || player_x1 >= sachiel_x2 ||
+                                  player_y2 <= sachiel_y1 || player_y1 >= sachiel_y2);
+
+    if (!no_collision) {
+        player->life -= sa->damage;
+        player->is_taking_damage = 1;
+
+        if (player->center_x < sa->center_x) 
+            player->damage_direction = -1;
+        else 
+            player->damage_direction = 1;
     }
 }

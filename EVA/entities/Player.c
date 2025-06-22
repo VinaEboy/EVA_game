@@ -6,19 +6,27 @@
 #include <allegro5/allegro_primitives.h>
 // Função para criar o jogador
 
-Player* create_player(float dificulty, int x, int y, int Y_SCREEN) {
+Player* create_player(float dificulty, int x, int y, int X_SCREEN, int Y_SCREEN) {
     Player *player = malloc(sizeof(Player));
     if (!player) return NULL;
 
+    player->speed = X_SCREEN*0.012; //0.012 é bom
+    player->bullet_speed = X_SCREEN*0.02;
+    player->jump_strenght = Y_SCREEN*0.07;
+    player->gravity = Y_SCREEN*0.005;
+
+    player->height = Y_SCREEN/3; //tem a mesma altura e largura
+    player->width = Y_SCREEN/3; 
+    player->squat_height = player->height*0.625;
     player->buster = buster_create(dificulty);
     player->x = x; // começa no começo da tela
 
     // Posiciona o jogador exatamente sobre o chão
     player->y = y;
-    player->hit_box_x = EVA_WIDTH*0.98; //o player não é um retangulo perfeito por isso esse fator de ajuste
-    player->hit_box_y = EVA_HEIGHT*0.98;
-    player->center_x = player->x + EVA_WIDTH/2;
-    player->center_y = player->y + EVA_HEIGHT/2;
+    player->hit_box_x = player->width*0.98; //o player não é um retangulo perfeito por isso esse fator de ajuste
+    player->hit_box_y = player->height*0.98;
+    player->center_x = player->x + player->width/2;
+    player->center_y = player->y + player->height/2;
     player->vx = 0;
     player->vy = 0;
     player->direction = 1;
@@ -34,9 +42,11 @@ Player* create_player(float dificulty, int x, int y, int Y_SCREEN) {
     player->charge_shot = 1; // primeiro nivel de carregar o tiro é o nivel 1
     player->timer_charge_shot = 0;
     player->shot = 0;
+    player->is_looking_up = 0;
 
     player->dificulty = dificulty;
-    player->life = 100*(1/dificulty);
+    player->life = 100/dificulty;
+    player->max_life = 100/dificulty;
     player->death_timer = 0;
 
     player->current_frame = 0;
@@ -50,7 +60,6 @@ Player* create_player(float dificulty, int x, int y, int Y_SCREEN) {
 
 // função que muda o estado de animação
 void player_set_animation_state(Player *player, PlayerAnimState new_state) {
-
     // Se a nova animação já for a que está ativa, não precisa mudar
     if (player->current_anim_state == new_state) {
         return;
@@ -71,9 +80,8 @@ void player_update_state(Player *player, int Y_SCREEN) {
 
     if (player->life <= 0) {
         player->death_timer++;
-        if (player->death_timer > PLAYER_DEATH_TIME) {
+        if (player->death_timer > PLAYER_DEATH_TIME) 
             player->is_dead = 1;
-        }
         return;
     } 
 
@@ -115,15 +123,25 @@ void player_update_animation(Player *player) {
     // Baseado na animação ATUAL, definimos a velocidade e o número de frames.
     switch (player->current_anim_state) {
         
-        case ANIM_STOPPED_GUN:
         case ANIM_STOPPED_NO_GUN:
             if (player->frame_timer >= ANIMATION_BLINK_SPEED) { // Animação mais lenta para se mexer parado
                 player->current_frame = (player->current_frame + 1) % 2; // Loop entre 2 frames
                 player->frame_timer = 0;
             }
             break;
+        case ANIM_STOPPED_GUN:
+            if (player->is_looking_up) {
+                player->current_frame = 2;
+                player->frame_timer = ANIMATION_BLINK_SPEED;
+            }
+            else if (player->frame_timer >= ANIMATION_BLINK_SPEED) { // Animação mais lenta para se mexer parado
+                player->current_frame = (player->current_frame + 1) % 2; // Loop entre 2 frames
+                player->frame_timer = 0;
+            }
+            break;
 
         case ANIM_RUN_GUN:
+        case ANIM_RUN_GUN_UP:
         case ANIM_RUN_NO_GUN: // Usa a mesma animação de andar
             if (player->frame_timer >= ANIMATION_RUN_SPEED) {
                 player->current_frame = (player->current_frame + 1) % 6; // Loop entre 6 frames
@@ -132,17 +150,20 @@ void player_update_animation(Player *player) {
             break;
 
         case ANIM_JUMP:
-            if (player->is_charging_shot)
-                player->current_frame = 1; 
+            if (player->is_charging_shot && player->is_looking_up)
+                player->current_frame = 2; 
+            else if (player->is_charging_shot)
+                player->current_frame = 1;    
             else 
-                player->current_frame = 0;    
+                player->current_frame = 0;
             break;
 
         case ANIM_SQUAT:
            if (player->frame_timer >= ANIMATION_SQUAT_SPEED) { // agachar numa velocidade até que rápido
-                if (player->current_frame < 1) player->current_frame++; 
-                else if (player->is_charging_shot) player->current_frame = 3; //se estiver atirando
-                else player->current_frame = 2; //se não estiver atirando
+                if (player->current_frame < 1) player->current_frame = 1; 
+                else if (player->is_charging_shot && player->is_looking_up) player->current_frame = 3; //se estiver atirando
+                else if (player->is_charging_shot) player->current_frame = 2;
+                else player->current_frame = 1; //se não estiver atirando
                 player->frame_timer = 0;
             }            
             break;
@@ -175,7 +196,10 @@ void update_player_sprite(Player *player) {
     } else if (player->is_squat) {
         desired_state = ANIM_SQUAT;
     } else if (player->is_moving && player->is_charging_shot) {
-        desired_state = ANIM_RUN_GUN;    
+        if (player->is_looking_up) 
+            desired_state = ANIM_RUN_GUN_UP;
+        else
+            desired_state = ANIM_RUN_GUN;    
     } else if (player->is_moving && !player->is_charging_shot) {
         desired_state = ANIM_RUN_NO_GUN;
     } else if ( player->is_taking_damage) {
@@ -199,7 +223,7 @@ void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprit
         
         case ANIM_STOPPED_GUN: // Animação para quando o jogador está parado
             *sprite_sheet = sprites->player_stopped_gun;
-            *frames_per_row = 2; // "2 sprites 1 linha"
+            *frames_per_row = 3; // "3 sprites 1 linha"
             break;
 
         case ANIM_STOPPED_NO_GUN: // Animação para quando o jogador está parado
@@ -218,14 +242,19 @@ void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprit
             *frames_per_row = 3; // "3 sprites em cada uma das 2 linhas"
             break;
 
+        case ANIM_RUN_GUN_UP: // Andando e atirando
+            *sprite_sheet = sprites->player_run_gun_up;
+            *frames_per_row = 3; // "3 sprites em cada uma das 2 linhas"
+            break;
+
         case ANIM_JUMP:
             *sprite_sheet = sprites->player_jump;
-            *frames_per_row = 2; // "2 sprites 1 linha"
+            *frames_per_row = 3; // "3 sprites 1 linha"
             break;
             
         case ANIM_SQUAT: // Agachado
             *sprite_sheet = sprites->player_squat;
-            *frames_per_row = 4; // "3 sprites 1 linha"
+            *frames_per_row = 4; // "4 sprites 1 linha"
             break;
 
         case ANIM_DAMAGE: // Recebendo dano
@@ -253,16 +282,16 @@ void player_update_position (Player *player, int num_platforms, Platform **platf
     // movimento horizontal é travado se estiver agachado
     if (player->is_moving && !player->is_squat) {
         if (player->direction == 1) { // Direita
-            if (player->vx < PLAYER_SPEED) 
-                player->vx += PLAYER_SPEED / 3; // acelera
+            if (player->vx < player->speed) 
+                player->vx += player->speed / 3; // acelera
             else 
-                player->vx = PLAYER_SPEED; //limita a velocidade ao máximo (negativo).
+                player->vx = player->speed; //limita a velocidade ao máximo (negativo).
             
         } else { // Esquerda
-            if (player->vx > -PLAYER_SPEED) 
-                player->vx -= PLAYER_SPEED / 3; // acelera
+            if (player->vx > -player->speed) 
+                player->vx -= player->speed / 3; // acelera
             else 
-                player->vx = -PLAYER_SPEED; //limita a velocidade ao máximo (negativo).
+                player->vx = -player->speed; //limita a velocidade ao máximo (negativo).
         }
     } 
     
@@ -276,7 +305,7 @@ void player_update_position (Player *player, int num_platforms, Platform **platf
 
 
     // gravidade é uma aceleração
-    player->vy += GRAVITY;
+    player->vy += player->gravity;
 
 
     // definir a priori a nova posição e se necessário corrigir
@@ -284,7 +313,7 @@ void player_update_position (Player *player, int num_platforms, Platform **platf
     player->y += player->vy;
 
     if(player->x < 0) player->x = 0;
-    if (player->x + EVA_WIDTH > level_width) player->x = level_width - EVA_WIDTH;
+    if (player->x + player->width > level_width) player->x = level_width - player->width;
 
     // definir a priori que está no ar
     player->is_on_ground = 0;
@@ -301,14 +330,14 @@ void player_update_position (Player *player, int num_platforms, Platform **platf
         }
     }
 
-    player->center_x = player->x + EVA_WIDTH/2;
+    player->center_x = player->x + player->width/2;
     if (!player->is_squat) {
-        player->center_y = player->y + EVA_WIDTH/2;
-        player->hit_box_y = EVA_WIDTH*0.98;
+        player->center_y = player->y + player->width/2;
+        player->hit_box_y = player->width*0.98;
     }
     else {
-        player->center_y = player->y + (EVA_HEIGHT - EVA_SQUAT_HEIGHT) + (EVA_SQUAT_HEIGHT/2); 
-        player->hit_box_y = EVA_SQUAT_HEIGHT;
+        player->center_y = player->y + (player->height - player->squat_height) + (player->squat_height/2); 
+        player->hit_box_y = player->squat_height;
     }
 
 }
@@ -344,13 +373,14 @@ void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_wi
 
 
 // TIRO
-void buster_fire(Player *player) {
+void buster_fire(Player *player, int X_SCREEN, int Y_SCREEN) {
     player->shot = 0;
     
     bullet *shot = NULL;
-    //olhando para direita
-    if (player->direction == 1) shot = bullet_create(player->buster->dificulty, player->center_x + 0.4*EVA_WIDTH, player->center_y ,player->direction, player->buster->shots, player->charge_shot);
-    else if (player->direction == -1) shot = bullet_create(player->buster->dificulty,player->center_x - EVA_WIDTH/2, player->center_y , player->direction, player->buster->shots, player->charge_shot);
+
+    if (player->is_looking_up) shot = bullet_create(player->buster->dificulty, player->center_x + player->direction*0.4*player->width, player->center_y - player->width*0.2 , 2, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
+    else if (player->direction == 1) shot = bullet_create(player->buster->dificulty, player->center_x + 0.4*player->width, player->center_y ,player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
+    else if (player->direction == -1) shot = bullet_create(player->buster->dificulty,player->center_x - player->width/2, player->center_y , player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
     if (shot) player->buster->shots = shot;
 
     player->charge_shot = 1;

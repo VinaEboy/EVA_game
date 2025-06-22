@@ -1,24 +1,14 @@
-Para hoje:
-- sprites do vilão
-- ATIRAR PARA CIMA
- 
-Ficou para trás e falta fazer:
-- Escrever de fato o progresso na fase de save/load, assim como calcular tempo de jogo
-- colocar música
+- MELHORAR COMENTÁRIOS DO CODIGO (ETAPA DE REVISAO)
 
-Falta na fase 1:
-- sprites do vilão
-- o vilão em si, com barra de vida colisão lógica...
-- "Travar" o chefão antes de derrotar inimigos
+PARA ENTREGAR BONITINHO:
+- Arrumar linkagens
+- Arrumar makefile para ficar menos monstruoso (acho que não tem como melhorar pq é muito arquivo msm)
 
 Se der tempo:
-- Shinji acompanhar na tela de seleção
-- Tiro diferente para um poder
-- fase 2
-- Dash
-- Coração que extende vida
-- Armadura do megaman man para o pé que dá dash ou pulo duplo
-- Warning para o vilão
-- Animação de transição da seleção pro vilão
-- Animação de start
+- colocar música e efeitos sonoros (mais complicado, acho que vou por so musica de fundo fds)
+- Fazer um delete save game
 
+Para o A4:
+- Melhorar o meu README como forma de lembrar oq eu fiz
+- Visualizar mentalmente como implementar um pulo duplo
+- como expandir a primeira fase em questão de tamanho.

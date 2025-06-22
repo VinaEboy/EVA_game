@@ -8,6 +8,13 @@
 #include <allegro5/allegro_ttf.h>
 #include <string.h>
 #include "../levels/Level_1.h" //por causa do "exit level"
+#include "../levels/Level_2.h" 
+#include "../levels/Level_3.h" 
+#include "../levels/Level_4.h" 
+#include "../levels/Level_5.h" 
+#include "../levels/Level_6.h" 
+#include "../levels/Level_7.h" 
+#include "../levels/Level_8.h" 
 
 //informações necessárias para a tela inicial rodar
 pause_game *pause_info_create() {
@@ -169,4 +176,24 @@ void exit_pause(game_state *state,pause_game *pause_info, ALLEGRO_BITMAP *pause_
 void exit_level(game_state *state, game_assets *assets) {
     if (state->level_1)
         exit_level_1(state, assets->level_1_info, assets->sprites);
+    else if (state->level_2)
+        exit_level_2(state,assets->level_2_info,assets->sprites);
+    else if (state->level_3)
+        exit_level_3(state,assets->level_3_info,assets->sprites);
+    else if (state->level_4)
+        exit_level_4(state,assets->level_4_info,assets->sprites);
+    else if (state->level_5)
+        exit_level_5(state,assets->level_5_info,assets->sprites);
+    else if (state->level_6)
+        exit_level_6(state,assets->level_6_info,assets->sprites);
+    else if (state->level_7)
+        exit_level_7(state,assets->level_7_info,assets->sprites);
+    else if (state->level_8)
+        exit_level_8(state,assets->level_8_info,assets->sprites);
+
+
+    if (state->title_screen) { //se vai voltar para o title_screen, não precisa da informação de jogo atual
+        free(state->player_progress);
+        state->player_progress = create_player_progress();
+    }
 }

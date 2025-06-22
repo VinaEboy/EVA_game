@@ -5,6 +5,7 @@
 
 struct Player;
 struct Jet_alone;
+struct Sachiel;
 
 /// COLISOES
 //status 0: não colidiu
@@ -29,5 +30,11 @@ void check_player_hit_by_ja_bullets(struct Player *player, struct Jet_alone **je
 void check_player_collision_with_ja(struct Player *player, struct Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn);
 
 void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn);
+
+// COLISAO SACHIEL
+
+void check_player_hit_by_sa_bullets(struct Player *player, struct Sachiel *sa);
+void check_sachiel_hit_by_player_bullets(struct Player *player, struct Sachiel *sa);
+void check_player_collision_with_sachiel(struct Player *player, struct Sachiel *sa);
 
 #endif

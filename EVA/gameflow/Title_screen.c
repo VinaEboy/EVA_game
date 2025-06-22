@@ -129,8 +129,9 @@ void title_screen_confirm(game_state *state, title_screen *title_screen_info) {
         state->options = 1;
     }
     else if(title_screen_info->load_game_selected) {
+        //não dá exit porque pode voltar
+        //caso carregue um jogo dai dentro do Load_game.c ele dá exit
         state->load_game = 1;
-        title_screen_info->title_screen_exit = 1;
     }
     
     else if(title_screen_info->new_game_selected) {

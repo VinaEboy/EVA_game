@@ -6,6 +6,8 @@
 #include <allegro5/allegro_font.h>																																											
 #include <allegro5/allegro_primitives.h>	
 #include "Game_state.h"
+#include "Title_screen.h" //para a função exit
+#include "Game_over.h" //para a função exit
 
 load_game *load_game_info_create( ) {
     load_game *load_game_info = (load_game *) malloc(sizeof(load_game));
@@ -17,39 +19,55 @@ load_game *load_game_info_create( ) {
     load_game_info->choose_slot_2_selected = 0; 
     load_game_info->slot_3_selected = 0; 
     load_game_info->choose_slot_3_selected = 0; 
-    load_game_info->return_to_title_screen_selected = 1;
-    load_game_info->return_to_title_screen = 0;
+    load_game_info->return_selected = 1;
+    load_game_info->load_game_exit = 0;
     load_game_info->choose_slot_1_color = al_map_rgb(255,255,255);
     load_game_info->choose_slot_2_color = al_map_rgb(255,255,255);
     load_game_info->choose_slot_3_color = al_map_rgb(255,255,255);
     load_game_info->timer = 0;
-
+    load_game_info->game_loaded = 0;
 
     FILE *arquivo = NULL;
     arquivo = fopen("save_data/slot_1.sav","rb");
-    load_game_info->player_progress_slot_1 = malloc(sizeof(player_data));
     if (arquivo) {
-        fread(load_game_info->player_progress_slot_1, sizeof(player_data), 1, arquivo);
-        fclose(arquivo);
-    } else
-        load_game_info->player_progress_slot_1 = NULL;
+        load_game_info->player_progress_slot_1 = malloc(sizeof(player_data));
+        load_game_info->controls_slot_1 = malloc(sizeof(buttom_map));
 
-    load_game_info->player_progress_slot_2 = malloc(sizeof(player_data));
+        fread(load_game_info->player_progress_slot_1, sizeof(player_data), 1, arquivo);
+        fread(load_game_info->controls_slot_1, sizeof(buttom_map),1,arquivo);
+        fclose(arquivo);
+    } else {
+        load_game_info->player_progress_slot_1 = NULL;
+        load_game_info->controls_slot_1 = NULL;
+    }
+
+
     arquivo = fopen("save_data/slot_2.sav","rb");
     if (arquivo) {
-        fread(load_game_info->player_progress_slot_2, sizeof(player_data), 1, arquivo);
-        fclose(arquivo);
-    } else
-        load_game_info->player_progress_slot_2 = NULL;
+        load_game_info->player_progress_slot_2 = malloc(sizeof(player_data));
+        load_game_info->controls_slot_2 = malloc(sizeof(buttom_map));
 
-    load_game_info->player_progress_slot_3 = malloc(sizeof(player_data));
+        fread(load_game_info->player_progress_slot_2, sizeof(player_data), 1, arquivo);
+        fread(load_game_info->controls_slot_2, sizeof(buttom_map),1,arquivo);
+        fclose(arquivo);
+    } else {
+        load_game_info->player_progress_slot_2 = NULL;
+        load_game_info->controls_slot_2 = NULL;
+    }
+
+
     arquivo = fopen("save_data/slot_3.sav","rb");
     if (arquivo) {
+        load_game_info->player_progress_slot_3 = malloc(sizeof(player_data));
+        load_game_info->controls_slot_3 = malloc(sizeof(buttom_map));
+
         fread(load_game_info->player_progress_slot_3, sizeof(player_data), 1, arquivo);
+        fread(load_game_info->controls_slot_3, sizeof(buttom_map),1,arquivo);
         fclose(arquivo);
-    } else
+    } else {
         load_game_info->player_progress_slot_3 = NULL;
-    
+        load_game_info->controls_slot_3 = NULL;
+    }
 
     return load_game_info;
 }
@@ -60,7 +78,7 @@ void start_load_game (game_state *state, load_game **load_game_info, ALLEGRO_BIT
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
         exit(1);
     }
-    *default_slot_image = al_load_bitmap("images/default_slot.png");
+    *default_slot_image = al_load_bitmap("images/backscreen/default_slot.png");
     if (!*default_slot_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
         exit(1);
@@ -74,9 +92,12 @@ void start_load_game (game_state *state, load_game **load_game_info, ALLEGRO_BIT
     state->load_game_started = 1;
 }
 
-void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_BITMAP *load_game_image, ALLEGRO_BITMAP *default_slot_image,
-                        load_game *load_game_info, int X_SCREEN, int Y_SCREEN)  {
+void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, game_assets *assets, int X_SCREEN, int Y_SCREEN)  {
     
+    ALLEGRO_BITMAP *load_game_image = assets->load_game_image;
+    ALLEGRO_BITMAP *default_slot_image = assets->default_slot_image;
+    load_game *load_game_info = assets->load_game_info;
+
     al_clear_to_color(al_map_rgb(0, 0, 0));
 
 
@@ -106,7 +127,7 @@ void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
 
     al_flip_display();
 
-    if (load_game_info->return_to_title_screen) exit_load_game(state,load_game_info,load_game_image);
+    if (load_game_info->load_game_exit) exit_load_game(state,assets);
 
 }
 
@@ -130,25 +151,25 @@ void load_game_down_move (load_game *load_game_info ) {
     } 
     //não reseta o slot selecionado pq precisa lembrar dessa info para retornar depois
     else if (load_game_info->slot_1_selected || load_game_info->slot_2_selected || load_game_info->slot_3_selected) {
-        load_game_info->return_to_title_screen_selected = 1;
+        load_game_info->return_selected = 1;
     } 
 }
 
 void load_game_up_move(load_game *load_game_info ) {
-    if (load_game_info->slot_1_selected && !load_game_info->return_to_title_screen_selected) {
+    if (load_game_info->slot_1_selected && !load_game_info->return_selected) {
         load_game_info->slot_1_selected = 0;
         load_game_info->choose_slot_1_selected = 1;
         load_game_info->choose_slot_1_color = al_map_rgb(184, 134, 11);
-    } else if (load_game_info->slot_2_selected && !load_game_info->return_to_title_screen_selected) {
+    } else if (load_game_info->slot_2_selected && !load_game_info->return_selected) {
         load_game_info->slot_2_selected = 0;
         load_game_info->choose_slot_2_selected = 1;
         load_game_info->choose_slot_2_color = al_map_rgb(184, 134, 11);
-    } else if (load_game_info->slot_3_selected && !load_game_info->return_to_title_screen_selected) {
+    } else if (load_game_info->slot_3_selected && !load_game_info->return_selected) {
         load_game_info->slot_3_selected = 0;
         load_game_info->choose_slot_3_selected = 1;
         load_game_info->choose_slot_3_color = al_map_rgb(184, 134, 11);
-    } else if (load_game_info->return_to_title_screen_selected) {
-        load_game_info->return_to_title_screen_selected = 0;
+    } else if (load_game_info->return_selected) {
+        load_game_info->return_selected = 0;
     }
 }
 
@@ -191,15 +212,14 @@ void load_game_right_move(load_game *load_game_info ) {
 }
 
 void load_game_confirm(game_state *state, load_game *load_game_info, ALLEGRO_BITMAP *load_game_image) {
-    if (load_game_info->slot_1_selected && !load_game_info->return_to_title_screen_selected) {
+    if (load_game_info->slot_1_selected && !load_game_info->return_selected) {
         load_game_slot(state,load_game_info, 1);
-    } else if (load_game_info->slot_2_selected && !load_game_info->return_to_title_screen_selected) {
+    } else if (load_game_info->slot_2_selected && !load_game_info->return_selected) {
         load_game_slot(state, load_game_info, 2);
-    } else if (load_game_info->slot_3_selected && !load_game_info->return_to_title_screen_selected) {
+    } else if (load_game_info->slot_3_selected && !load_game_info->return_selected) {
         load_game_slot(state,load_game_info, 3);
-    } else if (load_game_info->return_to_title_screen_selected) {
-        state->title_screen = 1;
-        load_game_info->return_to_title_screen = 1;
+    } else if (load_game_info->return_selected) {
+        load_game_info->load_game_exit = 1;
     }
 }
 
@@ -208,39 +228,51 @@ void load_game_confirm(game_state *state, load_game *load_game_info, ALLEGRO_BIT
 // Como essas structs não apontam para outras structs, a implementação é simples
 void load_game_slot(game_state *state, load_game *load_game_info, int slot) {
     if (slot == 1) {
-        if (!load_game_info->player_progress_slot_1) return;
+        if (!load_game_info->player_progress_slot_1 || !load_game_info->controls_slot_1) return;
 
         free(state->player_progress); 
         state->player_progress = malloc(sizeof(player_data));
         if (state->player_progress) 
             memcpy(state->player_progress, load_game_info->player_progress_slot_1, sizeof(player_data));
+
+        free(state->controls); 
+        state->controls = malloc(sizeof(buttom_map));
+        if (state->controls) 
+            memcpy(state->controls, load_game_info->controls_slot_1, sizeof(buttom_map));
         
-        state->player_progress = load_game_info->player_progress_slot_1;
-        state->level_select = 1;
-        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
     } else if (slot == 2) {
-        if (!load_game_info->player_progress_slot_2) return;
+        if (!load_game_info->player_progress_slot_2 || !load_game_info->controls_slot_2) return;
 
         free(state->player_progress); 
         state->player_progress = malloc(sizeof(player_data));
         if (state->player_progress) 
             memcpy(state->player_progress, load_game_info->player_progress_slot_2, sizeof(player_data));
     
-        state->player_progress = load_game_info->player_progress_slot_2;
-        state->level_select = 1;
-        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
+        free(state->controls); 
+        state->controls = malloc(sizeof(buttom_map));
+        if (state->controls) 
+            memcpy(state->controls, load_game_info->controls_slot_2, sizeof(buttom_map));
+
     } else if (slot == 3) {
-        if (!load_game_info->player_progress_slot_3) return;
+        if (!load_game_info->player_progress_slot_3 || !load_game_info->controls_slot_3) return;
 
         free(state->player_progress); 
         state->player_progress = malloc(sizeof(player_data));
         if (state->player_progress) 
             memcpy(state->player_progress, load_game_info->player_progress_slot_3, sizeof(player_data));
     
-        state->player_progress = load_game_info->player_progress_slot_3;
-        state->level_select = 1;
-        load_game_info->return_to_title_screen = 1; //é uma flag de que vai sair, nesse caso vai para level select porque fez load
+        free(state->controls); 
+        state->controls = malloc(sizeof(buttom_map));
+        if (state->controls) 
+            memcpy(state->controls, load_game_info->controls_slot_3, sizeof(buttom_map));
+    
     }
+
+    state->player_progress->start_time = al_get_time(); //agora o tempo que vc começou a jogar é esse
+    
+    load_game_info->game_loaded = 1;
+    state->level_select = 1;
+    load_game_info->load_game_exit = 1;
 }
 
 
@@ -250,13 +282,10 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
     int default_slot_height = al_get_bitmap_height(default_slot_image);
     
 
-    if (load_game_info->return_to_title_screen_selected) {
-        al_draw_text(font,al_map_rgb(184, 134, 11), X_SCREEN/2, Y_SCREEN*0.55, ALLEGRO_ALIGN_CENTER, "Return to");
-        al_draw_text(font,al_map_rgb(184, 134, 11), X_SCREEN/2, Y_SCREEN*0.6, ALLEGRO_ALIGN_CENTER, "Title Screen");
-    } else {
-        al_draw_text(font,al_map_rgb(255, 255, 255), X_SCREEN/2, Y_SCREEN*0.55, ALLEGRO_ALIGN_CENTER, "Return to");
-        al_draw_text(font,al_map_rgb(255, 255, 255), X_SCREEN/2, Y_SCREEN*0.6, ALLEGRO_ALIGN_CENTER, "Title Screen");        
-    }
+    if (load_game_info->return_selected) 
+        al_draw_text(font,al_map_rgb(184, 134, 11), X_SCREEN/2, Y_SCREEN*0.55, ALLEGRO_ALIGN_CENTER, "Return");
+    else 
+        al_draw_text(font,al_map_rgb(255, 255, 255), X_SCREEN/2, Y_SCREEN*0.55, ALLEGRO_ALIGN_CENTER, "Return");    
 
     if (load_game_info->slot_1_selected || load_game_info->choose_slot_1_selected) {
         al_draw_text(font,load_game_info->choose_slot_1_color, X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 1 ->");
@@ -265,12 +294,14 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
             if (load_game_info->timer > 20)
                         al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 1 ->");
         
-        if (load_game_info->slot_1_selected && !load_game_info->return_to_title_screen_selected && load_game_info->timer < 20) 
+        if (load_game_info->slot_1_selected && !load_game_info->return_selected && load_game_info->timer < 20) 
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
             
         
         if (load_game_info->player_progress_slot_1) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(load_game_info->player_progress_slot_1));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(load_game_info->player_progress_slot_1));
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -284,12 +315,14 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
         if (load_game_info->choose_slot_2_selected && load_game_info->timer > 20) 
             al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 2 ->");
         
-        if (load_game_info->slot_2_selected && !load_game_info->return_to_title_screen_selected && load_game_info->timer < 20)
+        if (load_game_info->slot_2_selected && !load_game_info->return_selected && load_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
         if (load_game_info->player_progress_slot_2) {
-            al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);   
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(load_game_info->player_progress_slot_2));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(load_game_info->player_progress_slot_2)); 
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -303,12 +336,14 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
         if (load_game_info->choose_slot_3_selected && load_game_info->timer > 20) 
             al_draw_text(font,al_map_rgb(0,0,0), X_SCREEN/2, Y_SCREEN/20, ALLEGRO_ALIGN_CENTER, "<- SLOT 3 ->");
         
-        if (load_game_info->slot_3_selected && !load_game_info->return_to_title_screen_selected && load_game_info->timer < 20)
+        if (load_game_info->slot_3_selected && !load_game_info->return_selected && load_game_info->timer < 20)
             al_draw_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(184, 134, 11), 8);
     
 
         if (load_game_info->player_progress_slot_3) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(load_game_info->player_progress_slot_3));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(load_game_info->player_progress_slot_3));    
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -321,12 +356,70 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
         load_game_info->timer = 0;
 } 
 
-void exit_load_game(game_state *state, load_game *load_game_info,ALLEGRO_BITMAP *load_game_image) {
+
+void exit_load_game(game_state *state, game_assets *assets) {
+    
+    load_game *load_game_info = assets->load_game_info;
+    ALLEGRO_BITMAP *default_slot_image = assets->default_slot_image;
+    ALLEGRO_BITMAP *load_game_image = assets->load_game_image;
+
+    //se um jogo foi carregado tem que liberar a etapa que estava antes do load (porque o load não conta como sair de uma etapa)
+    if (assets->load_game_info->game_loaded) {
+        if (state->title_screen) exit_title_screen(state, assets->title_screen_info, assets->title_screen_image );
+        else if (state->game_over) exit_game_over(state,assets->game_over_info, assets->game_over_image);
+    }
+    
     state->load_game = 0;
     state->load_game_started = 0;
     al_destroy_bitmap(load_game_image);
+    al_destroy_bitmap(default_slot_image);
     free(load_game_info->player_progress_slot_1);
     free(load_game_info->player_progress_slot_2);
     free(load_game_info->player_progress_slot_3);
+    free(load_game_info->controls_slot_1);
+    free(load_game_info->controls_slot_2);
+    free(load_game_info->controls_slot_3);
     free(load_game_info);
 }
+
+
+
+///////////////////////// AUXILIARES PARA PEGAR STRINGS PARA ESCREVER /////////////////
+
+const char* get_progress_string(struct player_data *progress) {
+    static char progress_buffer[30];
+
+
+    int completed_count = 0;
+    if (progress->Level_1_completed) completed_count++;
+    if (progress->Level_2_completed) completed_count++;
+    if (progress->Level_3_completed) completed_count++;
+    if (progress->Level_4_completed) completed_count++;
+    if (progress->Level_5_completed) completed_count++;
+    if (progress->Level_6_completed) completed_count++;
+    if (progress->Level_7_completed) completed_count++;
+    if (progress->Level_8_completed) completed_count++;
+    
+    const int total_levels = 8;
+
+    snprintf(progress_buffer, sizeof(progress_buffer), "Progress: %d/%d", completed_count, total_levels);
+
+    return progress_buffer;
+}
+
+
+const char* get_time_string(struct player_data *progress) {
+
+    static char time_buffer[30];
+
+    double total_seconds = progress->total_play_time;
+
+    int total_minutes = (int)(total_seconds / 60);
+    int hours = total_minutes / 60;
+    int minutes = total_minutes % 60;
+    
+    snprintf(time_buffer, sizeof(time_buffer), "Playtime: %dh%02d", hours, minutes);
+
+    return time_buffer;
+}
+

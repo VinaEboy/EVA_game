@@ -3,12 +3,16 @@
 #include <time.h>   // Para time()
 #include <math.h>
 
-Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y, int direction, float distance_to_player) {
+Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y, int direction, float distance_to_player, int X_SCREEN, int Y_SCREEN) {
     Jet_alone *ja = (Jet_alone *)malloc(sizeof(Jet_alone));
     if (!ja) return NULL;
   
-    ja->life = 100;
-    ja->damage = 20;
+    ja->speed = X_SCREEN*0.005;
+    ja->bullet_speed = X_SCREEN*0.02;
+    ja->gravity = Y_SCREEN*0.005;
+
+    ja->life = 100*dificulty;
+    ja->damage = 20*dificulty;
     ja->dead = 0;
     ja->distance_to_player = distance_to_player;
     ja->is_platform_left_edge = 0;
@@ -16,12 +20,16 @@ Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y,
     ja->is_on_ground = 1;
     ja->is_taking_damage = 0;
     
+    ja->height = Y_SCREEN/2;
+    ja->width = Y_SCREEN/2;
+    ja->squat_height = ja->height*0.56;
+
     ja->x = x, 
     ja->y = y;
-    ja->center_x = x + JA_WIDTH/2;
-    ja->center_y = y + JA_HEIGHT/2;
-    ja->hit_box_x = 0.4*JA_WIDTH;
-    ja->hit_box_y = 0.98*JA_HEIGHT;
+    ja->center_x = x + ja->width/2;
+    ja->center_y = y + ja->height/2;
+    ja->hit_box_x = 0.4*ja->width;
+    ja->hit_box_y = 0.98*ja->height;
 
     ja->direction = direction;
 
@@ -35,17 +43,17 @@ Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y,
     ja->squat_probability = squat_probability;
 
     ja->arm_up_timer = 0;
-    ja->ja_buster = ja_buster_create(dificulty);
+    ja->ja_buster = ja_buster_create(dificulty, ja->bullet_speed);
     ja->shot_timer = 0;
     ja->is_shooting = 0;
 
     return ja;
 }
 
-void update_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN) {
+void update_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN, int Y_SCREEN) {
 
     update_state_ja(ja, camera_x, player, X_SCREEN);
-    action_ja(ja,player);
+    action_ja(ja,player, X_SCREEN, Y_SCREEN);
 
 }
 
@@ -90,8 +98,8 @@ void update_ja_position (Jet_alone *ja, int num_platforms, Platform **platforms,
     if ( (ja->is_platform_left_edge && ja->direction == 1) || (ja->is_platform_right_edge && ja->direction == -1))
         ja->vx = 0;
 
-    // gravidade é uma aceleração
-    ja->vy += GRAVITY;
+
+    ja->vy += ja->gravity;
 
 
     // definir a priori a nova posição e se necessário corrigir
@@ -99,7 +107,7 @@ void update_ja_position (Jet_alone *ja, int num_platforms, Platform **platforms,
     ja->y += ja->vy;
 
     if(ja->x < 0) ja->x = 0;
-    if (ja->x + JA_WIDTH > level_width) ja->x = level_width - JA_WIDTH;
+    if (ja->x + ja->width > level_width) ja->x = level_width - ja->width;
 
     // definir a priori que está no ar
     ja->is_on_ground = 0;
@@ -117,11 +125,11 @@ void update_ja_position (Jet_alone *ja, int num_platforms, Platform **platforms,
     }
 
 
-    ja->center_x = ja->x + JA_WIDTH/2;
+    ja->center_x = ja->x + ja->width/2;
     if (!ja->is_squat)
-        ja->center_y = ja->y + JA_WIDTH/2;
+        ja->center_y = ja->y + ja->width/2;
     else
-        ja->center_y = ja->y + (JA_WIDTH - JA_SQUAT_HEIGHT) + (JA_SQUAT_HEIGHT/2); 
+        ja->center_y = ja->y + (ja->width - ja->squat_height) + (ja->squat_height/2); 
 }
 
 //atualiza o estado do jet alone e caso necessário faz ele virar a direção
@@ -135,15 +143,15 @@ void update_state_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN
         ja->direction = -1;
 
     // Lógica corrigida para o inimigo perseguir
-    unsigned char is_visible = (ja->x + JA_WIDTH > camera_x) && (ja->x < camera_x + X_SCREEN);
+    unsigned char is_visible = (ja->x + ja->width > camera_x) && (ja->x < camera_x + X_SCREEN);
     float ja_distance = abs(ja->x - player->x); 
     unsigned char abys_fall = ( (ja->is_platform_left_edge && ja->direction == 1) || (ja->is_platform_right_edge && ja->direction == -1));
 
     if ( (!is_visible || ja_distance > ja->distance_to_player ) && !abys_fall) { 
         ja->state = JA_WALK; 
-        ja->center_x = ja->x + JA_WIDTH/2;
-        ja->hit_box_y = 0.98*JA_HEIGHT;
-        ja->center_y = ja->y + JA_WIDTH/2;
+        ja->center_x = ja->x + ja->width/2;
+        ja->hit_box_y = 0.98*ja->height;
+        ja->center_y = ja->y + ja->width/2;
         return; 
     }
 
@@ -167,39 +175,39 @@ void update_state_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN
             ja->state = JA_STOP;
     }
 
-    ja->center_x = ja->x + JA_WIDTH/2;
+    ja->center_x = ja->x + ja->width/2;
     if (ja->state == JA_SQUAT) {
-        ja->hit_box_y = 0.7*JA_HEIGHT; //a hitbox diminui
-        ja->center_y = ja->y + 1.5*JA_WIDTH/2;
+        ja->hit_box_y = 0.7*ja->height; //a hitbox diminui
+        ja->center_y = ja->y + 1.5*ja->width/2;
     } else {
-        ja->hit_box_y = 0.98*JA_HEIGHT;
-        ja->center_y = ja->y + JA_WIDTH/2;
+        ja->hit_box_y = 0.98*ja->height;
+        ja->center_y = ja->y + ja->width/2;
     }
 
 }
 
-void action_ja(Jet_alone *ja, Player *player) {
+void action_ja(Jet_alone *ja, Player *player, int X_SCREEN, int Y_SCREEN) {
     switch (ja->state) {
         case JA_WALK:
-            move_ja(ja);
+            move_ja(ja, X_SCREEN, Y_SCREEN);
             break; 
 
         case JA_SQUAT:
-            squat_ja(ja);
+            squat_ja(ja, X_SCREEN, Y_SCREEN);
             break;
 
         case JA_STOP:
-            stop_ja(ja);
+            stop_ja(ja, X_SCREEN, Y_SCREEN);
             break;
 
         default:
-            stop_ja(ja);
+            stop_ja(ja, X_SCREEN, Y_SCREEN);
             break;
     }
 }
 
 //estados em que o ja pode estar
-void move_ja(Jet_alone *ja) {
+void move_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->frame_timer++;
     if (ja->frame_timer > JA_WALK_ANIMATION) {
         ja->current_frame = (ja->current_frame + 1)%2;
@@ -207,24 +215,24 @@ void move_ja(Jet_alone *ja) {
     }
 
     if (ja->direction == 1) { // Direita
-        if (ja->vx < JA_SPEED) 
-            ja->vx += JA_SPEED / 3; // acelera
+        if (ja->vx < ja->speed) 
+            ja->vx += ja->speed / 3; // acelera
         else 
-            ja->vx = JA_SPEED; //limita a velocidade ao máximo (negativo).
+            ja->vx = ja->speed; //limita a velocidade ao máximo (negativo).
             
     } else { // Esquerda
-        if (ja->vx > -JA_SPEED) 
-            ja->vx -= JA_SPEED / 3; // acelera
+        if (ja->vx > -ja->speed) 
+            ja->vx -= ja->speed / 3; // acelera
         else 
-            ja->vx = -JA_SPEED; //limita a velocidade ao máximo (negativo).
+            ja->vx = -ja->speed; //limita a velocidade ao máximo (negativo).
     }    
 
     ja->shot_timer++;
     if (ja->shot_timer > JA_SHOT_COOLDOWN)
-        ja_buster_fire(ja);
+        ja_buster_fire(ja, X_SCREEN, Y_SCREEN);
     else {
         ja->arm_up_timer++;
-        if (ja->arm_up_timer > ARM_UP_TIME) {
+        if (ja->arm_up_timer > JA_ARM_UP_TIME) {
             ja->is_shooting = 0;
             ja->arm_up_timer = 0;
         }
@@ -232,26 +240,26 @@ void move_ja(Jet_alone *ja) {
 
 }
 
-void squat_ja(Jet_alone *ja) {
+void squat_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->frame_timer++;
     if (ja->frame_timer > JA_SQUAT_ANIMATION && ja->current_frame == 0)
         ja->current_frame = 1;
 
     ja->shot_timer++;
     if (ja->shot_timer > JA_SHOT_COOLDOWN)
-        ja_buster_fire(ja);
+        ja_buster_fire(ja, X_SCREEN, Y_SCREEN);
     else
         ja->is_shooting = 0;
 
 }
 
-void stop_ja(Jet_alone *ja) {
+void stop_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->shot_timer++;
     if (ja->shot_timer > JA_SHOT_COOLDOWN) 
-        ja_buster_fire(ja);
+        ja_buster_fire(ja, X_SCREEN, Y_SCREEN);
     else {
         ja->arm_up_timer++;
-        if (ja->arm_up_timer > ARM_UP_TIME) {
+        if (ja->arm_up_timer > JA_ARM_UP_TIME) {
             ja->is_shooting = 0;
             ja->arm_up_timer = 0;
         }
@@ -262,12 +270,12 @@ void stop_ja(Jet_alone *ja) {
 }
 
 // TIRO
-void ja_buster_fire(Jet_alone *ja) {
+void ja_buster_fire(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja_bullet *shot = NULL;
     ja->is_shooting = 1;
     //olhando para direita
-    if (ja->direction == 1) shot = ja_bullet_create(ja->ja_buster->dificulty, ja->center_x + JA_WIDTH/2.7, ja->center_y - JA_HEIGHT/5,ja->direction, ja->ja_buster->shots);
-    else if (ja->direction == -1) shot = ja_bullet_create(ja->ja_buster->dificulty, ja->center_x - JA_WIDTH/2.7, ja->center_y - JA_HEIGHT/5 , ja->direction, ja->ja_buster->shots);
+    if (ja->direction == 1) shot = ja_bullet_create(ja->ja_buster->dificulty, ja->bullet_speed, ja->center_x + ja->width/2.7, ja->center_y - ja->height/5,ja->direction, ja->ja_buster->shots, X_SCREEN, Y_SCREEN);
+    else if (ja->direction == -1) shot = ja_bullet_create(ja->ja_buster->dificulty, ja->bullet_speed, ja->center_x - ja->width/2.7, ja->center_y - ja->height/5 , ja->direction, ja->ja_buster->shots, X_SCREEN, Y_SCREEN);
     if (shot) ja->ja_buster->shots = shot;
 
     ja->shot_timer = 0;
@@ -286,7 +294,7 @@ int ja_check_for_ledge(struct Jet_alone *ja, Platform **platforms, int num_platf
     }
 
     // Ponto Y da sonda: um pixel abaixo dos pés do inimigo.
-    float probe_y = ja->y + JA_HEIGHT + 1;
+    float probe_y = ja->y + ja->height + 1;
 
     // Ponto X da sonda: depende da direção que o inimigo está se movendo.
     float probe_x;

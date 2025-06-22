@@ -42,27 +42,29 @@ void joystick_update(game_state *state, Player *player) {
         player->direction = 1;
     }
     else {
-        // CORREÇÃO CRÍTICA: Se nenhuma tecla de movimento está pressionada, o jogador para,
-        // mas a sua DIREÇÃO é MANTIDA. Não mexemos em player->direction aqui.
-        // Isso resolve o bug de ele virar para a direita sozinho.
         player->is_moving = 0;
         player->is_stopped = 1;
     }
 
     // --- LÓGICA DE AGACHAR (CONTÍNUA) ---
-    // Faz mais sentido tratar o agachar como um estado contínuo (enquanto segura a tecla)
     if (al_key_down(&key_state, state->controls->DOWN)) {
         joystick_down(player);
     } else {
         // Se a tecla não está pressionada, ele levanta.
         joystick_stand_up(player);
-    }
+    }   
 
     // --- LÓGICA DE CARREGAR O TIRO (CONTÍNUA) ---
     if (al_key_down(&key_state, state->controls->SHOT)) {
         player->is_charging_shot = 1;
     } else {
         player->is_charging_shot = 0;
+    }
+
+    if (al_key_down(&key_state, state->controls->UP)) {
+        player->is_looking_up = 1;
+    } else {
+        player->is_looking_up = 0;
     }
 
     if (player->is_charging_shot) {
@@ -80,7 +82,7 @@ void joystick_update(game_state *state, Player *player) {
 
 
 //  FUNÇÃO DE HANDLE (Eventos Pontuais) - Chamada a CADA evento
-void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
+void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player, int X_SCREEN, int Y_SCREEN) {
     if (!player || !event) return;
 
     if (event->type == ALLEGRO_EVENT_KEY_DOWN && event->keyboard.keycode == state->controls->PAUSE) state->pause = 1;
@@ -95,7 +97,7 @@ void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
     
     else if (event->type == ALLEGRO_EVENT_KEY_UP) {
         if (event->keyboard.keycode == state->controls->SHOT) {
-            buster_fire(player);
+            buster_fire(player, X_SCREEN, Y_SCREEN);
         }
         
     }
@@ -107,7 +109,7 @@ void joystick_handle(ALLEGRO_EVENT *event, game_state *state, Player *player) {
 void joystick_jump(Player *player) {
     if (!player->is_on_ground || player->is_squat) return;
 
-    player->vy = -PLAYER_JUMP_STRENGTH;
+    player->vy = -player->jump_strenght;
     player->is_on_ground = 0;    
 }
 

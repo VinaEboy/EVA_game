@@ -18,6 +18,8 @@ typedef struct options {
     ALLEGRO_COLOR CONFIRM_color;    
     unsigned char PAUSE_selected;
     ALLEGRO_COLOR PAUSE_color;       
+    unsigned char DIFFICULTY_selected;
+    ALLEGRO_COLOR DIFFICULTY_color;
     unsigned char BACK_selected;
     ALLEGRO_COLOR BACK_color;     
     unsigned char key_to_switch; // vai falar se está na etapa de trocar o valor de uma chave
@@ -37,5 +39,7 @@ void options_down_move(options *options_info );
 void options_up_move(options *options_info );
 void options_key_select(game_state *state, options *options_info);
 void options_key_switch(ALLEGRO_EVENT *event, game_state *state, options *options_info);
+void options_left_move(game_state *state, options *options_info);
+void options_right_move(game_state *state, options *options_info);
 
 #endif

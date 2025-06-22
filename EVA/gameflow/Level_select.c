@@ -81,6 +81,8 @@ void show_level_select(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
 
     if(level_select_info->warning_return_title_screen) 
         warning_return_title_screen(state, level_select_info, font, X_SCREEN, Y_SCREEN);
+    else
+        draw_defeated_levels(state, X_SCREEN,Y_SCREEN);
 
     al_flip_display();
     
@@ -228,10 +230,7 @@ void level_select_confirm(game_state *state,level_select *level_select_info,ALLE
         return;
     }
 
-    if (level_select_info->Level_2_selected || level_select_info->Level_3_selected || level_select_info->Level_4_selected || 
-        level_select_info->Level_5_selected || level_select_info->Level_6_selected  || level_select_info->Level_7_selected ||
-        level_select_info->Level_8_selected ) {
-
+    if (level_select_info->Shinji_selected) {
         level_select_info->warning_no_level = 1;
         return;
     }
@@ -251,6 +250,48 @@ void level_select_confirm(game_state *state,level_select *level_select_info,ALLE
     if (level_select_info->Level_1_selected) {
         level_select_info->level_select_exit = 1;
         state->level_1 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_2_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_2 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_3_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_3 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_4_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_4 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_5_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_5 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_6_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_6 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_7_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_7 = 1;
+        return;
+    }
+
+    if (level_select_info->Level_8_selected) {
+        level_select_info->level_select_exit = 1;
+        state->level_8 = 1;
         return;
     }
 
@@ -281,8 +322,8 @@ void warning_no_level(ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
 
 void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select_info, int X_SCREEN, int Y_SCREEN) {
-    al_draw_text(font, level_select_info->Save_game_color, 7*X_SCREEN/8, Y_SCREEN/2, ALLEGRO_ALIGN_CENTER,
-                "Save Game");
+ 
+    al_draw_text(font, level_select_info->Save_game_color, 7*X_SCREEN/8, Y_SCREEN/2, ALLEGRO_ALIGN_CENTER, "Save Game");
 
     al_draw_text(font, level_select_info->Back_title_screen_color, X_SCREEN/8, Y_SCREEN/2 - Y_SCREEN/48, ALLEGRO_ALIGN_CENTER,"Return to");
     al_draw_text(font, level_select_info->Back_title_screen_color, X_SCREEN/8, Y_SCREEN/2 + Y_SCREEN/48, ALLEGRO_ALIGN_CENTER,"title screen");
@@ -317,6 +358,13 @@ void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select_info,
 void exit_level_select (game_state *state, level_select *level_select_info,ALLEGRO_BITMAP *level_select_image ) {
     state->level_select = 0;
     state->level_select_started = 0;
+
+    //significa que está voltando para tela principal, ou seja, a informação do player_progress reseta
+    if (state->title_screen) {
+        free(state->player_progress);
+        state->player_progress = create_player_progress();
+    }
+
     free(level_select_info);
     al_destroy_bitmap(level_select_image);
 }
@@ -337,4 +385,89 @@ void warning_return_title_screen(game_state *state, level_select *level_select_i
         al_draw_text(font, al_map_rgb(184, 134, 11), X_SCREEN/2 + X_SCREEN/8, 5*Y_SCREEN/8, ALLEGRO_ALIGN_CENTER,"No");
 
     }
+}
+
+void draw_defeated_levels(game_state *state, int X_SCREEN, int Y_SCREEN) {
+    // cinza opaco para desenhar por cima dos chefes derrotados
+    ALLEGRO_COLOR defeated_overlay_color = al_map_rgba(40, 40, 40, 153);
+
+    // modo de mesclaagem
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
+
+    // dimensões do quadrado
+    const float rect_half_width = X_SCREEN * 0.05f;
+    const float rect_half_height = Y_SCREEN * 0.1f;
+    
+    // coordenadas dos quadrados.
+    const float y_coords[] = { Y_SCREEN / 7.0f, Y_SCREEN / 7.0f + Y_SCREEN / 4.0f, Y_SCREEN / 7.0f + Y_SCREEN / 2.0f };
+    const float x_coords[] = { X_SCREEN / 2.0f - X_SCREEN / 6.0f, X_SCREEN / 2.0f, X_SCREEN / 2.0f + X_SCREEN / 6.0f };
+
+
+    if (state->player_progress->Level_1_completed) {
+        float center_x = x_coords[0];
+        float center_y = y_coords[0];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+    
+    if (state->player_progress->Level_2_completed) {
+        float center_x = x_coords[1];
+        float center_y = y_coords[0];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+
+    if (state->player_progress->Level_3_completed) {
+        float center_x = x_coords[2];
+        float center_y = y_coords[0];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+    if (state->player_progress->Level_4_completed) {
+        float center_x = x_coords[0];
+        float center_y = y_coords[1];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+    if (state->player_progress->Level_5_completed) {
+        float center_x = x_coords[2];
+        float center_y = y_coords[1];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+    if (state->player_progress->Level_6_completed) {
+        float center_x = x_coords[0];
+        float center_y = y_coords[2];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+    if (state->player_progress->Level_7_completed) {
+        float center_x = x_coords[1];
+        float center_y = y_coords[2];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+
+    if (state->player_progress->Level_8_completed) {
+        float center_x = x_coords[2];
+        float center_y = y_coords[2];
+        al_draw_filled_rectangle(center_x - rect_half_width, center_y - rect_half_height, 
+                                 center_x + rect_half_width, center_y + rect_half_height, 
+                                 defeated_overlay_color);
+    }
+    
+    // se não restaurar o blender padrão os outros desenhos podem ficar zoados
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 }

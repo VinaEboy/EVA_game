@@ -2,11 +2,7 @@
 #ifndef __PLAYER_H__
 #define __PLAYER_H__
 
-// Constantes da física e movimento do jogador
-// FAZER PROPORCIONAL A TELA ??
-#define PLAYER_SPEED 10.0
-#define PLAYER_JUMP_STRENGTH 40.0
-#define GRAVITY 2.0
+
 #define ANIMATION_RUN_SPEED 5 
 #define ANIMATION_BLINK_SPEED 40
 #define ANIMATION_SQUAT_SPEED 2
@@ -15,9 +11,6 @@
 
 #define CHARGE_BLINK_SPEED 9
 // Dimensões do frame do player
-#define EVA_WIDTH 256
-#define EVA_HEIGHT 256
-#define EVA_SQUAT_HEIGHT 160
 #define PLAYER_PUSHBACK 20
 #define DAMAGE_TIME 30 
 #define INVINCIBLE_TIME 75
@@ -43,12 +36,18 @@ typedef enum {
     ANIM_DAMAGE,       
     ANIM_JUMP_DAMAGE, 
     ANIM_DEATH,
+    ANIM_RUN_GUN_UP,
 } PlayerAnimState;
 
 
 typedef struct Player {
     buster_t *buster; // é a "pistol"
 
+    float jump_strenght;
+    float gravity;
+    float speed, bullet_speed;
+    float height, width;
+    float squat_height;
     float x, y;            
     float hit_box_x, hit_box_y; //hitbox muda se estiver de pé ou agachado
     float center_x, center_y; //centro 
@@ -68,10 +67,12 @@ typedef struct Player {
     int charge_shot; //o quão carregado o tiro está
     int timer_charge_shot;
     unsigned char is_dead;
-    
+    unsigned char is_looking_up;
+
     float dificulty;
     //status 
     float life;
+    float max_life;
     int death_timer;
 
     // Animação
@@ -80,7 +81,7 @@ typedef struct Player {
     int frame_timer;        
 } Player;
 
-Player* create_player(float dificulty, int x, int y, int Y_SCREEN);
+Player* create_player(float dificulty, int x, int y, int X_SCREEN, int Y_SCREEN);
 
 // ANIMATION
 
@@ -104,7 +105,7 @@ void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_wi
 
 
 // tiro
-void buster_fire(Player *player);
+void buster_fire(Player *player, int X_SCREEN, int Y_SCREEN);
 
 
 // colisoes

@@ -26,29 +26,30 @@ save_game *save_game_info_create( ) {
 
     FILE *arquivo = NULL;
     arquivo = fopen("save_data/slot_1.sav","rb");
-    save_game_info->player_progress_slot_1 = malloc(sizeof(player_data));
     if (arquivo) {
+        save_game_info->player_progress_slot_1 = malloc(sizeof(player_data));
         fread(save_game_info->player_progress_slot_1, sizeof(player_data), 1, arquivo);
         fclose(arquivo);
     } else
         save_game_info->player_progress_slot_1 = NULL;
 
-    save_game_info->player_progress_slot_2 = malloc(sizeof(player_data));
+
     arquivo = fopen("save_data/slot_2.sav","rb");
     if (arquivo) {
+        save_game_info->player_progress_slot_2 = malloc(sizeof(player_data));
         fread(save_game_info->player_progress_slot_2, sizeof(player_data), 1, arquivo);
         fclose(arquivo);
     } else
         save_game_info->player_progress_slot_2 = NULL;
 
-    save_game_info->player_progress_slot_3 = malloc(sizeof(player_data));
+
     arquivo = fopen("save_data/slot_3.sav","rb");
     if (arquivo) {
+        save_game_info->player_progress_slot_3 = malloc(sizeof(player_data));
         fread(save_game_info->player_progress_slot_3, sizeof(player_data), 1, arquivo);
         fclose(arquivo);
     } else
         save_game_info->player_progress_slot_3 = NULL;
-
 
 
     return save_game_info;
@@ -60,7 +61,7 @@ void start_save_game (game_state *state, save_game **save_game_info, ALLEGRO_BIT
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
         exit(1);
     }
-    *default_slot_image = al_load_bitmap("images/default_slot.png");
+    *default_slot_image = al_load_bitmap("images/backscreen/default_slot.png");
     if (!*default_slot_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela de salvar jogo \n");
         exit(1);
@@ -215,18 +216,27 @@ void save_game_slot(game_state *state, save_game *save_game_info, int slot) {
         arquivo = fopen("save_data/slot_3.sav","wb");
     if (!arquivo) return ;
 
+    state->player_progress->total_play_time += al_get_time() - state->player_progress->start_time;
+    state->player_progress->start_time = al_get_time();
 
     fwrite(state->player_progress, sizeof(player_data), 1, arquivo);
     fwrite(state->controls, sizeof(buttom_map), 1, arquivo);
 
-    if (slot == 1) 
-        save_game_info->player_progress_slot_1 = state->player_progress;
-    else if (slot == 2) 
-        save_game_info->player_progress_slot_2 = state->player_progress;
-    else
-        save_game_info->player_progress_slot_3 = state->player_progress;
-        
+    // atualize a struct do slot na memória com uma cópia segura
+    player_data **target_slot_ptr = NULL;
+    if (slot == 1) target_slot_ptr = &save_game_info->player_progress_slot_1;
+    else if (slot == 2) target_slot_ptr = &save_game_info->player_progress_slot_2;
+    else target_slot_ptr = &save_game_info->player_progress_slot_3;
 
+    // Libera os dados antigos do slot
+    if (*target_slot_ptr) 
+        free(*target_slot_ptr);
+    
+    // Aloca nova memória para o slot e copia os dados atuais do jogo para ele
+    *target_slot_ptr = malloc(sizeof(player_data));
+    if (*target_slot_ptr) 
+        memcpy(*target_slot_ptr, state->player_progress, sizeof(player_data));
+    
     fclose(arquivo);
 }
 
@@ -257,6 +267,8 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
         
         if (save_game_info->player_progress_slot_1) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(save_game_info->player_progress_slot_1));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(save_game_info->player_progress_slot_1));        
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -276,6 +288,8 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
 
         if (save_game_info->player_progress_slot_2) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(save_game_info->player_progress_slot_2));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(save_game_info->player_progress_slot_2));        
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));
@@ -295,6 +309,8 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
 
         if (save_game_info->player_progress_slot_3) {
             al_draw_scaled_bitmap(default_slot_image,0, 0,default_slot_width,default_slot_height, X_SCREEN/4, Y_SCREEN/6, X_SCREEN/2, Y_SCREEN/3, 0);    
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.25, ALLEGRO_ALIGN_CENTER, get_progress_string(save_game_info->player_progress_slot_3));
+            al_draw_text(font,al_map_rgb(255,255,255), X_SCREEN*0.4, Y_SCREEN*0.35, ALLEGRO_ALIGN_CENTER, get_time_string(save_game_info->player_progress_slot_3));        
         }
         else {
             al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/2, X_SCREEN*0.75, Y_SCREEN/6, al_map_rgb(36, 36, 36));

@@ -7,7 +7,6 @@
 #include <allegro5/allegro_primitives.h>	
 #include <allegro5/allegro_ttf.h>
 #include <string.h>
-#include "../levels/Level_1.h" //por causa do "exit level"
 
 //informações necessárias para a tela inicial rodar
 game_over *game_over_info_create() {
@@ -67,24 +66,18 @@ void show_game_over (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
             game_over_up_move(game_over_info);
         if (event->keyboard.keycode == state->controls->CONFIRM)
             game_over_confirm(state,game_over_info);
-        if (event->keyboard.keycode == state->controls->PAUSE) {
-            game_over_info->Load_game_selected = 1;
-            game_over_info->game_over_exit = 1;
-        }
     }
 
     game_over_draw_text(game_over_info, font, X_SCREEN, Y_SCREEN);
 
     al_flip_display();
 
-    if (game_over_info->game_over_exit) {
-        if (!game_over_info->Load_game_selected) //significa que estou saindo do game_over e da fase por isso tenho que descarregar a fase
-            exit_level(state, assets);
+    if (game_over_info->game_over_exit) 
         exit_game_over(state, game_over_info,game_over_image);
-    }
+    
 }
 
-///////////////////////////////////// Funções auxiliares de Pause /////////////////////////////////////////////////////////////////////////
+///////////////////////////////////// Funções auxiliares do Game Over /////////////////////////////////////////////////////////////////////////
 
 
 void game_over_down_move(game_over *game_over_info) {
@@ -130,7 +123,6 @@ void game_over_confirm(game_state *state,game_over *game_over_info) {
     state->player_progress->Lifes = 3; //reseta as vidas
     if (game_over_info->Load_game_selected) {
         state->load_game = 1;
-        game_over_info->game_over_exit = 1;
     } else if (game_over_info->Options_selected) {
         state->options = 1;
     } else if (game_over_info->Return_to_stage_select_selected) {
@@ -160,7 +152,6 @@ void game_over_draw_text(game_over *game_over_info, ALLEGRO_FONT *font, int X_SC
 }
 
 
-//Tem que pensar em como eu vou descarregar a primeira fase também
 void exit_game_over(game_state *state,game_over *game_over_info, ALLEGRO_BITMAP *game_over_image) {
     state->game_over_started = 0;
     state->game_over = 0;

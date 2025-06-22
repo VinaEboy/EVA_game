@@ -50,5 +50,5 @@ void level_select_confirm(game_state *state,level_select *level_select_info,ALLE
 void warning_no_level(ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN);
 void exit_level_select (game_state *state, level_select *level_select_info,ALLEGRO_BITMAP *level_select_image );
 void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select, int X_SCREEN, int Y_SCREEN) ;
-
+void draw_defeated_levels(game_state *state, int X_SCREEN, int Y_SCREEN) ;
 #endif

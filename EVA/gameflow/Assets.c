@@ -19,7 +19,17 @@ game_assets *game_assets_create() {
     assets->load_game_image = NULL;
     assets->game_over_image = NULL;
     assets->game_over_info = NULL;
+    assets->game_end_image = NULL;
+    assets->game_end_info = NULL;
 
+    assets->level_1_info = NULL;
+    assets->level_2_info = NULL;
+    assets->level_3_info = NULL;
+    assets->level_4_info = NULL;
+    assets->level_5_info = NULL;
+    assets->level_6_info = NULL;
+    assets->level_7_info = NULL; 
+    assets->level_8_info = NULL;
 
     entities_sprites *sprites = malloc(sizeof(entities_sprites));
     if (!sprites) {
@@ -37,6 +47,7 @@ game_assets *game_assets_create() {
     sprites->life_bar = NULL;
     sprites->player_jump_damage = NULL;
     sprites->player_death = NULL;
+    sprites->player_run_gun_up = NULL;
     
     sprites->level_1_background = NULL;
     sprites->level_1_ground = NULL;
@@ -51,6 +62,32 @@ game_assets *game_assets_create() {
     sprites->jet_alone_stop = NULL;
     sprites->jet_alone_walk = NULL;
 
+    sprites->sa_default_and_under = NULL;
+    sprites->sa_shot = NULL;
+    sprites->sa_minor_p1 = NULL;
+    sprites->sa_minor_p2 = NULL;
+    sprites->sa_minor_p3 = NULL;
+    sprites->sa_bullet = NULL;
+    sprites->sa_heart = NULL;
+    sprites->sa_face = NULL;
+    sprites->sa_hand = NULL;
+    sprites->sa_life_bar = NULL;
+
+    sprites->level_2_background = NULL;
+    sprites->level_2_ground = NULL;
+    sprites->level_3_background = NULL;
+    sprites->level_3_ground = NULL;
+    sprites->level_4_background = NULL;
+    sprites->level_4_ground = NULL;
+    sprites->level_5_background = NULL;
+    sprites->level_5_ground = NULL;
+    sprites->level_6_background = NULL;
+    sprites->level_6_ground = NULL;
+    sprites->level_7_background = NULL;
+    sprites->level_7_ground = NULL;
+    sprites->level_8_background = NULL;
+    sprites->level_8_ground = NULL;
+    
     assets->sprites = sprites;
 
     return assets;

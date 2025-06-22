@@ -12,8 +12,8 @@ buster_t *buster_create(float dificulty) {
 }
 
 
-bullet *buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster, int type) {
-    bullet *new_bullet = bullet_create(buster->dificulty, x,y,trajectory, buster->shots, type);
+bullet *buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster, int type, int X_SCREEN, int Y_SCREEN) {
+    bullet *new_bullet = bullet_create(buster->dificulty,x,y,trajectory, buster->shots, type, X_SCREEN, Y_SCREEN);
     if (!new_bullet) return NULL;
     return new_bullet;
 }
@@ -35,6 +35,7 @@ void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int l
 	for (bullet *index = buster->shots; index != NULL;) {
 		if (index->trajectory == -1) index->x -= index->speed;
 		else if (index->trajectory == 1) index->x += index->speed;
+		else if (index->trajectory == 2) index->y -= index->speed;
 
 		index->frame_timer++;
 		if (index->frame_timer > index->animation_speed) {
@@ -46,7 +47,7 @@ void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int l
 		}
 
 		//margens da fase
-		if ((index->x < 0) || (index->x > level_width) || (index->x + BULLET_1_WIDTH < camera_x) || (index->x  > camera_x + X_SCREEN)) {
+		if ((index->x < 0) || (index->x > level_width) || (index->x + index->width < camera_x) || (index->x  > camera_x + X_SCREEN) || index->y < 0) {
 			if (previous) {
 				previous->next = index->next;
 				bullet_destroy(index);
@@ -72,20 +73,17 @@ void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int l
 void update_ja_bullets(float camera_x, ja_buster_t *ja_buster, int X_SCREEN) {
 	ja_bullet *previous = NULL;
 	for (ja_bullet *index = ja_buster->shots; index != NULL;) {
-		if (index->trajectory == -1) index->x -= JA_BULLET_MOVE;
-		else if (index->trajectory == 1) index->x += JA_BULLET_MOVE;
+		if (index->trajectory == -1) index->x -= index->speed;
+		else if (index->trajectory == 1) index->x += index->speed;
 
 		index->frame_timer++;
 		if (index->frame_timer > JA_BULLET_ANIMATION_SPEED) {
 			index->frame_timer = 0;
-			if (index->current_frame < 3)
-				index->current_frame++;
-			else
-				index->current_frame--;
+			index->current_frame = (index->current_frame + 1) % 4;
 		}
 
 		//margens da fase
-		if ((index->x < 0) || (index->x > 8000) || (index->x + JA_BULLET_WIDTH < camera_x) || (index->x  > camera_x + X_SCREEN)) {
+		if ((index->x < 0) || (index->x > 8000) || (index->x + index->width < camera_x) || (index->x  > camera_x + X_SCREEN)) {
 			if (previous) {
 				previous->next = index->next;
 				ja_bullet_destroy(index);
@@ -104,17 +102,18 @@ void update_ja_bullets(float camera_x, ja_buster_t *ja_buster, int X_SCREEN) {
 	}
 }
 
-ja_buster_t *ja_buster_create(float dificulty){
+ja_buster_t *ja_buster_create(float dificulty, float speed){
 	ja_buster_t *ja_buster = (ja_buster_t*) malloc(sizeof(ja_buster_t));
 	if (!ja_buster) return NULL;
+    ja_buster->bullet_speed = speed;
     ja_buster->timer = 0;
     ja_buster->dificulty = dificulty;
     ja_buster->shots = NULL;
 	return ja_buster;
 }
 
-ja_bullet* ja_buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, ja_buster_t *ja_buster) {
-    ja_bullet *new_bullet = ja_bullet_create(ja_buster->dificulty, x,y,trajectory, ja_buster->shots);
+ja_bullet* ja_buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, ja_buster_t *ja_buster, int X_SCREEN, int Y_SCREEN) {
+    ja_bullet *new_bullet = ja_bullet_create(ja_buster->dificulty,ja_buster->bullet_speed, x,y,trajectory, ja_buster->shots, X_SCREEN, Y_SCREEN);
     if (!new_bullet) return NULL;
     return new_bullet;
 }
@@ -126,4 +125,70 @@ void ja_buster_destroy(ja_buster_t *ja_buster) {
         ja_bullet_destroy(index);
     }
 	free(ja_buster);
+}
+
+/////////////////////////////// SACHIEL
+
+sa_buster_t *sa_buster_create(float dificulty) {
+    sa_buster_t *sa_buster = (sa_buster_t *) malloc(sizeof(sa_buster_t));
+    if (!sa_buster) return NULL;
+
+    sa_buster->dificulty = dificulty;
+    sa_buster->timer = 0;
+    sa_buster->shots = NULL;
+
+    return sa_buster;
+}
+
+
+sa_bullet *sa_buster_shot(int speed, unsigned short x, unsigned short y, unsigned char trajectory, sa_buster_t *sa_buster,int X_SCREEN, int Y_SCREEN, int type) {
+    sa_bullet *new_bullet = sa_bullet_create(sa_buster->dificulty, speed, x, y, trajectory, sa_buster->shots, X_SCREEN, Y_SCREEN, type);
+    if (!new_bullet) return NULL;
+    sa_buster->shots = new_bullet;
+
+    return new_bullet;
+}
+
+
+void sa_buster_destroy(sa_buster_t *sa_buster) {
+    if (!sa_buster) return;
+
+    sa_bullet *sentinel;
+    for (sa_bullet *index = sa_buster->shots; index != NULL; index = sentinel) {
+        sentinel = (sa_bullet*) index->next;
+        sa_bullet_destroy(index);
+    }
+    free(sa_buster);
+}
+
+
+void update_sa_bullets(float camera_x, sa_buster_t *sa_buster, int X_SCREEN, int level_width) {
+    sa_bullet *previous = NULL;
+    for (sa_bullet *index = sa_buster->shots; index != NULL;) {
+        if (index->trajectory == -1) index->x -= index->speed;      // Esquerda
+        else if (index->trajectory == 1) index->x += index->speed;  // Direita
+        else if (index->trajectory == 2) index->y += index->speed;  // Baixo
+
+
+        index->frame_timer++;
+        if (index->frame_timer > SA_BULLET_ANIMATION_SPEED) { 
+            index->frame_timer = 0;
+            index->current_frame = (index->current_frame + 1) % 2; 
+        }
+
+        if ((index->x < 0) || (index->x > level_width) || (index->x + index->hit_box_x < camera_x) || (index->x > camera_x + X_SCREEN) || index->y < 0) {
+            sa_bullet *temp_to_destroy = index;
+            if (previous) {
+                previous->next = index->next;
+                index = (sa_bullet*) previous->next;
+            } else {
+                sa_buster->shots = (sa_bullet*) index->next;
+                index = sa_buster->shots;
+            }
+            sa_bullet_destroy(temp_to_destroy);
+        } else {
+            previous = index;
+            index = (sa_bullet*) index->next;
+        }
+    }
 }

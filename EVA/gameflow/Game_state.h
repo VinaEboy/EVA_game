@@ -5,12 +5,21 @@
 #include "Title_screen.h"
 #include "Level_select.h"
 #include "Options.h"
-#include "../levels/Level_1.h"
 #include "Pause.h"
 #include "Save_game.h"
 #include "Load_game.h"
 #include "Game_over.h"
+#include "Game_end.h"
 #include <allegro5/allegro.h>
+
+#include "../levels/Level_1.h"
+#include "../levels/Level_2.h"
+#include "../levels/Level_3.h"
+#include "../levels/Level_4.h"
+#include "../levels/Level_5.h"
+#include "../levels/Level_6.h"
+#include "../levels/Level_7.h"
+#include "../levels/Level_8.h" 
 
 #define DIFFICULTY_EASY 0.75
 #define DIFFICULTY_MEDIUM 1.0
@@ -30,10 +39,9 @@ typedef struct buttom_map {
 
 typedef struct player_data {
     int Lifes;
-    int Hearts; //extensão da barra de vida original
-    float dificulty; 
+    float dificulty; //corresponde a um fator multiplicativo do EASY, MEDIUM, HARD
 
-    unsigned char Level_1_completed;
+    unsigned char Level_1_completed; //progresso
     unsigned char Level_2_completed;
     unsigned char Level_3_completed;
     unsigned char Level_4_completed;
@@ -42,8 +50,8 @@ typedef struct player_data {
     unsigned char Level_7_completed;
     unsigned char Level_8_completed;
 
-    double start_time;  //informações úteis para calcular o tempo de jogo
-    double total_play_time;
+    double start_time;  //informação útil para calcular o tempo de jogo
+    double total_play_time; //tempo de jogo
 
 } player_data;
 
@@ -53,8 +61,6 @@ typedef struct game_state {
     unsigned char title_screen_started;
     unsigned char level_select;
     unsigned char level_select_started;
-    unsigned char level_1;
-    unsigned char level_1_started;
     unsigned char load_game;
     unsigned char load_game_started;
     unsigned char options;
@@ -65,6 +71,27 @@ typedef struct game_state {
     unsigned char save_game_started;
     unsigned char game_over;
     unsigned char game_over_started;
+    unsigned char game_end;
+    unsigned char game_end_started;
+
+    unsigned char level_1;
+    unsigned char level_1_started;
+    unsigned char level_2;
+    unsigned char level_2_started;
+    unsigned char level_3;
+    unsigned char level_3_started;
+    unsigned char level_4;
+    unsigned char level_4_started;
+    unsigned char level_5;
+    unsigned char level_5_started;
+    unsigned char level_6;
+    unsigned char level_6_started;
+    unsigned char level_7;
+    unsigned char level_7_started;
+    unsigned char level_8;
+    unsigned char level_8_started;
+
+
     int checkpoint; //serve para saber se está em algum checkpoint na fase 
     buttom_map *controls;
     player_data *player_progress;
@@ -148,7 +175,7 @@ static const key_map_t key_map[] = {
 
 };
 
-
+player_data *create_player_progress();
 game_state *game_state_create();
 void game_state_destroy(game_state *state);
 

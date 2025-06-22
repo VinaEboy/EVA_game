@@ -28,6 +28,8 @@ options *options_create() {
     options_info->CONFIRM_color = al_map_rgb(255, 255, 255);    
     options_info->PAUSE_selected = 0;   
     options_info->PAUSE_color = al_map_rgb(255, 255, 255);    
+    options_info->DIFFICULTY_selected = 0;
+    options_info->DIFFICULTY_color = al_map_rgb(255, 255, 255);  
     options_info->BACK_selected = 1;
     options_info->BACK_color = al_map_rgb(184, 134, 11);    
     options_info->key_to_switch = 0; // vai falar se está na etapa de trocar o valor de uma chave
@@ -61,6 +63,10 @@ void show_options(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
                 options_up_move(options_info);
             if (event->keyboard.keycode == state->controls->CONFIRM) 
                 options_key_select(state,options_info);
+            if (event->keyboard.keycode == state->controls->LEFT)
+                options_left_move(state,options_info);
+            if (event->keyboard.keycode == state->controls->RIGHT)
+                options_right_move(state,options_info);
         }
         
     }
@@ -90,7 +96,7 @@ const char *get_key_name(int keycode) {
 
 void options_draw_text (game_state *state, ALLEGRO_FONT *font, options *options_info, int X_SCREEN,int  Y_SCREEN) {
 
-    int margin_top = Y_SCREEN/6;
+    int margin_top = Y_SCREEN*0.1;
     int margin_side = X_SCREEN/3;
     int padding_Y = Y_SCREEN/15;
 
@@ -118,6 +124,14 @@ void options_draw_text (game_state *state, ALLEGRO_FONT *font, options *options_
     al_draw_text(font, options_info->PAUSE_color,margin_side, margin_top + 7*padding_Y, ALLEGRO_ALIGN_CENTER, "PAUSE");
     al_draw_text(font, options_info->PAUSE_color,X_SCREEN - margin_side, margin_top + 7*padding_Y, ALLEGRO_ALIGN_CENTER, get_key_name(state->controls->PAUSE));
 
+    al_draw_text(font, options_info->DIFFICULTY_color,margin_side, margin_top + 9*padding_Y, ALLEGRO_ALIGN_CENTER, "DIFFICULTY");
+    if (state->player_progress->dificulty == DIFFICULTY_EASY)
+        al_draw_text(font, options_info->DIFFICULTY_color,X_SCREEN - margin_side, margin_top + 9*padding_Y, ALLEGRO_ALIGN_CENTER, "<- EASY ->");
+    else if (state->player_progress->dificulty == DIFFICULTY_MEDIUM)
+        al_draw_text(font, options_info->DIFFICULTY_color,X_SCREEN - margin_side, margin_top + 9*padding_Y, ALLEGRO_ALIGN_CENTER, "<- MEDIUM ->");
+    else if (state->player_progress->dificulty == DIFFICULTY_HARD)
+        al_draw_text(font, options_info->DIFFICULTY_color,X_SCREEN - margin_side, margin_top + 9*padding_Y, ALLEGRO_ALIGN_CENTER, "<- HARD ->");
+
     al_draw_text(font, options_info->BACK_color, X_SCREEN/2, Y_SCREEN - margin_top, ALLEGRO_ALIGN_CENTER, "BACK");
 
     if (options_info->timer > 0 && options_info->timer < 11) //fica 1/3 de segundo ofuscado
@@ -127,6 +141,7 @@ void options_draw_text (game_state *state, ALLEGRO_FONT *font, options *options_
 }
 
 
+//Escreve por cima de preto para dar a impressão que tá piscando
 void options_blind (game_state *state, ALLEGRO_FONT *font, options *options_info, int X_SCREEN, int Y_SCREEN, int margin_top, int margin_side, int padding_Y) {
 
     if (options_info->SHOT_selected) {
@@ -203,7 +218,12 @@ void options_down_move(options *options_info ) {
         options_info->PAUSE_color = al_map_rgb(184, 134, 11);    
     } else if(options_info->PAUSE_selected ) {
         options_info->PAUSE_selected  = 0;
-        options_info->PAUSE_color = al_map_rgb(255, 255, 255);          
+        options_info->PAUSE_color = al_map_rgb(255, 255, 255);   
+        options_info->DIFFICULTY_selected = 1;
+        options_info->DIFFICULTY_color = al_map_rgb(184, 134, 11);
+    } else if (options_info->DIFFICULTY_selected) {
+        options_info->DIFFICULTY_selected  = 0;
+        options_info->DIFFICULTY_color = al_map_rgb(255, 255, 255);   
         options_info->BACK_selected  = 1;
         options_info->BACK_color = al_map_rgb(184, 134, 11);    
     } 
@@ -214,6 +234,11 @@ void options_up_move(options *options_info ) {
     if(options_info->BACK_selected) {
         options_info->BACK_selected = 0;
         options_info->BACK_color = al_map_rgb(255, 255, 255);  
+        options_info->DIFFICULTY_selected = 1;
+        options_info->DIFFICULTY_color = al_map_rgb(184, 134, 11);   
+    } else if (options_info->DIFFICULTY_selected) {
+        options_info->DIFFICULTY_selected = 0;
+        options_info->DIFFICULTY_color = al_map_rgb(255, 255, 255);  
         options_info->PAUSE_selected = 1;
         options_info->PAUSE_color = al_map_rgb(184, 134, 11);       
     } else if (options_info->PAUSE_selected) {
@@ -292,4 +317,28 @@ void options_key_switch(ALLEGRO_EVENT *event, game_state *state, options *option
     else if (options_info->CONFIRM_selected) state->controls->CONFIRM = new_key;
     else if (options_info->PAUSE_selected) state->controls->PAUSE = new_key;
     
+}
+
+void options_left_move(game_state *state, options *options_info) {
+    if (!options_info->DIFFICULTY_selected) return;
+
+    if (state->player_progress->dificulty == DIFFICULTY_EASY)
+        state->player_progress->dificulty = DIFFICULTY_HARD;
+    else if (state->player_progress->dificulty == DIFFICULTY_MEDIUM)
+        state->player_progress->dificulty = DIFFICULTY_EASY;
+    else if (state->player_progress->dificulty == DIFFICULTY_HARD)
+        state->player_progress->dificulty = DIFFICULTY_MEDIUM;
+
+}
+
+void options_right_move(game_state *state, options *options_info) {
+    if (!options_info->DIFFICULTY_selected) return;
+
+    if (state->player_progress->dificulty == DIFFICULTY_EASY)
+        state->player_progress->dificulty = DIFFICULTY_MEDIUM;
+    else if (state->player_progress->dificulty == DIFFICULTY_MEDIUM)
+        state->player_progress->dificulty = DIFFICULTY_HARD;
+    else if (state->player_progress->dificulty == DIFFICULTY_HARD)
+        state->player_progress->dificulty = DIFFICULTY_EASY;
+
 }
