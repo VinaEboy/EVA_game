@@ -4,6 +4,12 @@
 **Autor:** Vinícius Gregorio Fucci  
 **GRR20241272**
 
+Para rodar o jogo é necessário ter a biblioteca Allegro e a linguagem C.
+Na pasta em que está o makefile, use o comando "make" no terminal. Após isso, execute o programa fazendo:
+./EVA
+Caso queira limpar a pasta dos executáveis, faça "make clean"
+
+
 Este projeto implementa um jogo com física, plataformas e mecânica de atirar, parecido com Metal Slug e fortemente inspirado na saga Megaman e Megaman X, na linguagem C usando a biblioteca Allegro.
 
 O nome do jogo é Evangelion Versus Angels: EVA. A temática do jogo é inspirado no anime Neon Genesis Evangelion, que conta a história de colegiais que lutam contra entidades desconhecidas (chamadas de Anjos) em um mecha robótico (chamada de EVAs).
@@ -46,6 +52,12 @@ As fases são criadas com base em um vetor escrito em código com informações 
 
 O arquivo Draw.c é um arquivo genérico que ajuda a desenhar as dinâmicas da fase. Então existem funções gerais para qualquer fase (como desenhar o player, desenhar o inimigo JA) e outras funções mais específicas (como desenhar o background da fase 1, porque tem um padrão diferente das outras fases). Também desenha barra de vida do jogador e do Boss final.
 
+Implementação do Rolling Background: Na 1° Fase, tem 2 tipos de imagem no cenário: O background normal e o background do chefão. As 6 primeiras telas de fundo (com tamanho X_SCREEN, ou seja, com o tamanho do monitor da pessoa que estiver jogando) são a primeira imagem alternanto se está espelhado ou não. E a última é o cenário do chefão. Na hora de desenhar o cenário, ele desenha apenas o que está na tela (culling) e 
+
+Desenho do tiro: O tiro pode ter ser para esquerda, direita e para cima. Quando é só para esquerda e direita, bastava a flag de inverter horizontalmente. Mas com a possibilidade de atirar para cima, foi necessário usar a função de desenho de rotação al_draw_tinted_scaled_rotated_bitmap_region() que usa o grau de rotação em radianos.
+
+Mecanismo para piscar o player enquanto ele está carregando tiro: Para ter o feedback visual de que o player está carregando o tiro, foi feito uma "mistura" na tintura que se desenha o player. Uma pulsação com base no relógio do computador, junto da função seno (que oscila) do math.h, indica o quão forte vai ser o brilho do pulso com base no tempo.
+
 ## Sessão: Funcionalidades extras implementadas
 
 Foram implementados as seguintes funcionalidades extras:
@@ -66,13 +78,25 @@ menu de opções.
 [5 - 9 pontos] Dificuldade ajustável no menu de opções
 (Fácil, Médio e Díficil).
 
+[7 - 10 pontos] Trilha sonora na tela principal, seleção
+de fase e na fase, com ajustador de volume no menu de
+opções.
+
 [10 - 11 pontos] Tela de seleção de fase análoga a do
 Megaman (ou seja, implementar sistema de fases não
 lineares e menu de seleção para escolher as mesmas – pelo
 menos uma ramificação)
 
-## Sessão: Erros conhecidos
+## Sessão: Erros e problemas conhecidos
 
-- Se o jogador estiver no meio da fase e trocar a dificuldade, a dificuldade só será realmente trocada quando ele morrer e renascer ou quando ele sair da fase. Isso acontece porque os inimigos tem seus parâmetros criados ao inicializar a fase então trocar no meio não vai reinicializar os inimigos. Uma opção seria forçar o player a renascer para trocar a dificuldade.
+- Em uma plataforma muito pequena de largura, não foi testado se o inimigo Jet Alone detecta a borda corretamente (a função de detectar borda verifica se ele está na borda esquerda, borda direita ou em nenhuma, nesse caso, como ele estaria nas duas bordas, fica ambíguo)
 
-- Não é um erro, mas é uma falta de implementação. Para deletar um slot de jogo salvo é necessário deletar o arquivo na pasta ou sobrescrevê-lo com outro save.
+- A tela na hora de travar no chefão da fase 1 pode não travar se o jogador não avançar o suficiente (avançar 40% da tela horizontal)
+
+- As fases 2 ... 8 são apenas demonstrações de que o jogo não é linear, mas elas não tem um conteúdo em si (não implementei por falta de tempo e criatividade)
+
+- Quando você reinicia a fase, a música começa de volta do começo, o que pode ser meio irritante.
+
+- Não é um erro, mas é uma falta de implementação. Para deletar um slot de jogo salvo é necessário deletar manualmente o arquivo na pasta ou sobrescrevê-lo com outro save.
+
+- Não é um erro, mas se o jogador estiver no meio da fase e trocar a dificuldade ou o volume do jogo, só será trocado quando clicar em "APPLY" ou quando ele resetar a fase (seja morrendo ou saindo da fase). E quando ele APPLY ele reinicia a fase, com o mesmo tanto de vida, do último checkpoint. Ou seja, ele pode ficar "resetando" a fase infinitamente, o que pode ser considerado trapaça.

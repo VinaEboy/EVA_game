@@ -3,6 +3,7 @@
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
+#include <stdio.h>
 
 #include <math.h>
 #include "Level_1.h"
@@ -55,8 +56,16 @@ level_1 *level_1_info_create(game_state *state, int X_SCREEN, int Y_SCREEN, int 
 } 
 
 
-void start_level_1(game_state *state, level_1 **level_1_info, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, int checkpoint) {
-    
+void start_level_1(game_state *state, level_1 **level_1_info, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, int checkpoint, ALLEGRO_AUDIO_STREAM **current_music) {
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_destroy_audio_stream(*current_music);
+    }
+    *current_music = al_load_audio_stream("sounds/level_1.ogg", 4, 2048); // (arquivo, buffer count, buffer size)
+    al_attach_audio_stream_to_mixer(*current_music, al_get_default_mixer());
+    al_set_audio_stream_playmode(*current_music, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(*current_music, state->sound_volume); // configura o volume do jogo
+
     *level_1_info = level_1_info_create(state, X_SCREEN, Y_SCREEN, checkpoint);
 
     sprites->level_1_background = al_load_bitmap("images/cenario/level_1_background.png");
@@ -238,12 +247,13 @@ void show_level_1(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, A
 //função que faz spawnar os Jet Alone
 void level_1_spawn_ja(level_1 *level_1_info, Player *player, int X_SCREEN, int Y_SCREEN) {
 
-    float default_ground_Y = Y_SCREEN - level_1_info->FLOOR - Y_SCREEN*0.5; //o ultimo desconto é o tamanho do JA
+    float default_ground_Y = Y_SCREEN - level_1_info->FLOOR - Y_SCREEN*0.55; //o ultimo desconto é o tamanho do JA
+
 
     //posições x em que o jogador tem que ultrapassar para spawnar os JA
     int activate_pos[MAX_JA] = {0.8*X_SCREEN, 1.3*X_SCREEN, 1.4*X_SCREEN, 2.7*X_SCREEN , 3.2*X_SCREEN, 3.6*X_SCREEN, 4.7*X_SCREEN}; 
     int spawn_pos_x[MAX_JA] = {1.4*X_SCREEN, 2.4*X_SCREEN, 2.6*X_SCREEN, 3.3*X_SCREEN, 4*X_SCREEN, 4.3*X_SCREEN, 5.5*X_SCREEN}; //posição x em que cada inimigo vai spawnar
-    int spawn_pos_y[MAX_JA] = {default_ground_Y,default_ground_Y,default_ground_Y, default_ground_Y - Y_SCREEN*0.1, default_ground_Y - Y_SCREEN*0.1, default_ground_Y - Y_SCREEN*0.1, default_ground_Y}; // posição y
+    int spawn_pos_y[MAX_JA] = {default_ground_Y,default_ground_Y,default_ground_Y, default_ground_Y - Y_SCREEN*0.2, default_ground_Y - Y_SCREEN*0.2, default_ground_Y - Y_SCREEN*0.2, default_ground_Y}; // posição y
     float squat_prob_pos[MAX_JA] = {0.2, 0.5, 0.2, 1, 0.3, 0.1, 0.5}; //probabilidade de cada inimigo tem a agachar
     int spawn_direction[MAX_JA] = {-1, -1, -1, -1, -1, -1, -1};
     float distance_to_player[MAX_JA] = {X_SCREEN*0.35, X_SCREEN*0.35, X_SCREEN*0.5, X_SCREEN*0.2, X_SCREEN*0.35, X_SCREEN*0.2, X_SCREEN*0.2};
@@ -252,7 +262,7 @@ void level_1_spawn_ja(level_1 *level_1_info, Player *player, int X_SCREEN, int Y
         if (level_1_info->did_jet_spawn[i] == 0) {
             if (player->x >= activate_pos[i]) {
                 level_1_info->jet_alones[i] = ja_create(player->buster->dificulty, squat_prob_pos[i], spawn_pos_x[i], spawn_pos_y[i], spawn_direction[i], distance_to_player[i], X_SCREEN, Y_SCREEN);
-                level_1_info->did_jet_spawn[i] = 1;
+                if (level_1_info->jet_alones[i] != NULL) level_1_info->did_jet_spawn[i] = 1;
             }
         }
     }

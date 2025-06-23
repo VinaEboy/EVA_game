@@ -1,6 +1,7 @@
 #include "Objects.h"
 #include <stdlib.h>
 
+//cria a plataforma
 Platform *create_platform(float x, float y, float width, float height) {
     Platform *new_platform = (Platform *) malloc(sizeof(Platform));
     if (!new_platform) return NULL;
@@ -11,6 +12,7 @@ Platform *create_platform(float x, float y, float width, float height) {
     return new_platform;
 }
 
+//libera memória
 void platform_destroy( Platform *platform) {
     free(platform);
 }

@@ -2,12 +2,13 @@
 #include <stdlib.h> 
 #include <math.h>
 
+//cria o chefão
 Sachiel *create_sa(float dificulty, int X_SCREEN, int Y_SCREEN) {
     Sachiel *sa = (Sachiel *) malloc(sizeof(Sachiel));
     if (!sa) return NULL;
 
-    sa->life = 500*dificulty;
-    sa->max_life = 500*dificulty;
+    sa->life = 400*dificulty;
+    sa->max_life = 400*dificulty;
     
     sa->damage = 50*dificulty; //dano em caso de contato do player com o heart do sachiel
     sa->is_dead = 0;
@@ -31,10 +32,10 @@ Sachiel *create_sa(float dificulty, int X_SCREEN, int Y_SCREEN) {
     sa->y = Y_SCREEN - 0.07*Y_SCREEN - sa->height/2;
     sa->vx = 0,
     sa->vy = 0;
-    sa->center_x = sa->x + sa->width/2, 
-    sa->center_y = sa->y + sa->height/2;
+    sa->center_x = sa->x + sa->heart_width/2, 
+    sa->center_y = sa->y + sa->heart_height/2;
     sa->hit_box_x = sa->heart_width, 
-    sa->hit_box_y = sa->heart_width;
+    sa->hit_box_y = sa->heart_height;
     sa->heart_direction = -1; // -1 é para cima, 1 é para baixo
     
     sa->state = SA_DEFAULT;
@@ -71,11 +72,13 @@ Sachiel *create_sa(float dificulty, int X_SCREEN, int Y_SCREEN) {
     return sa;
 }
 
+//funções para atualizar tudo que é necessário do Sachiel
 void update_sa(Sachiel *sa, Player *player, int X_SCREEN, int Y_SCREEN) {
     update_state_sa(sa, player, X_SCREEN, Y_SCREEN);
     action_sa(sa, X_SCREEN, Y_SCREEN);
 }
 
+// atualiza o estado dele 
 void update_state_sa (Sachiel *sa, Player *player, int X_SCREEN, int Y_SCREEN) {
     if (sa->life <= 0) {
         sa->death_timer++;
@@ -150,6 +153,7 @@ void update_heart_position (Sachiel *sa, int level_width, int X_SCREEN, int Y_SC
     sa->center_y = sa->y + sa->heart_height/2;
 }
 
+// faz a ação correspondente ao estado dele
 void action_sa(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     if (sa->life <= 0) return;
 
@@ -172,6 +176,9 @@ void action_sa(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     }
 }
 
+////////////////////////////// AÇÕES DOS ESTADOS ////////////////////////////////////////////////
+
+//movimento default do coração
 void heart_default_move(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     if (sa->heart_direction == -1) {
         if (sa->y > sa->top_margin_default) sa->vy = -sa->heart_speed;
@@ -183,7 +190,7 @@ void heart_default_move(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     }
 }
 
-
+// ação dele mudar de lado, incluindo animação
 void switching_side_sa(Sachiel *sa, int X_SCREEN) {
 
     //ainda não trocou de lado da fase
@@ -258,8 +265,7 @@ void switching_side_sa(Sachiel *sa, int X_SCREEN) {
 
 } 
 
-
-//sprite
+// sprite correspondente ao estado dele, útil para o arquivo Draw
 void sa_sprite (Sachiel *sa, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites) {
     switch (sa->state) {
         case SA_DEFAULT:
@@ -289,6 +295,7 @@ void sa_sprite (Sachiel *sa, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sp
 }
 
 
+// ação de atirar de acordo com o estado em que ele está
 void sa_buster_fire(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     sa_bullet *shot = NULL;
     if (sa->arm_up_timer != SA_ARM_UP_TIME) return; //significa que já atirou a primeira vez que entrou no estado
@@ -308,12 +315,13 @@ void sa_buster_fire(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     else if (sa->state == SA_UP_SHOT) {
         if (sa->is_left) x = sa->x + sa->width/2 - sa->heart_width/2;
         else x = sa->x - sa->width/2 + sa->heart_width/2;
-        y = sa->ground_margin_default;
+        y = sa->ground_margin_default + Y_SCREEN*0.05;
+        type = 3;
     }
     else if (sa->state == SA_DOWN_SHOT) {
         if (sa->is_left) x = sa->x + sa->width/2 - sa->heart_width/2;
         else x = sa->x - sa->width/2 + sa->heart_width/2;
-        y = sa->ground_margin_default + Y_SCREEN*0.2;
+        y = sa->ground_margin_default + Y_SCREEN*0.3;
     }
 
     shot = sa_bullet_create(sa->sa_buster->dificulty, type*sa->fire_speed, x, y, direction, sa->sa_buster->shots, X_SCREEN, Y_SCREEN, type);
@@ -322,6 +330,7 @@ void sa_buster_fire(Sachiel *sa, int X_SCREEN, int Y_SCREEN) {
     sa->fire_timer = 0;
 }
 
+// libera memória
 void sa_destroy(struct Sachiel *sa) {
     sa_buster_destroy(sa->sa_buster);
     free(sa);

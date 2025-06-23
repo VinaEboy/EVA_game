@@ -9,7 +9,8 @@
 #include "../gameflow/Game_state.h"
 #include "../entities/Jet_alone.h"
 #include "../entities/Sachiel.h"
-
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #define MAX_PLATFORMS 20
 #define MAX_JA 20
@@ -36,7 +37,7 @@ typedef struct level_1 {
 } level_1;
 
 
-void start_level_1(game_state *state, level_1 **level_1_info, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, int checkpoint);
+void start_level_1(game_state *state, level_1 **level_1_info, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, int checkpoint, ALLEGRO_AUDIO_STREAM **current_music);
 void show_level_1(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp,entities_sprites *sprites, level_1 *level_1_info, int X_SCREEN, int Y_SCREEN);
 void level_1_update(level_1 *level_1_info, game_state *state, int X_SCREEN, int Y_SCREEN);
 

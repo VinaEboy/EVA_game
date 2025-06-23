@@ -1,5 +1,0 @@
-Mais imagens
-Começo da fase 1
-Resto tá funcionando, alguns detalhes dá para fazer
-como sprite do shinji olhando
-escrever info no "save" e "load"

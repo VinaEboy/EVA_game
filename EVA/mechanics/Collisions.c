@@ -7,83 +7,107 @@
 #include "../entities/Bullet.h"
 #include <stdio.h>
 
-//a chave para a chegagem é saber que o centro do jogador não está atualizado, ou seja
-//a coordenada x e y é aonde o jogador quer ir e a coordenada center_x center_y fala aonde ele estava
+//////////////////////// COLISOES COM PLATAFORMAS //////////////////////////////////////////
+// verifica colisão usando o método AABB (é mais fácil verificar se não colidiu do que se colidiu)
+
+//status 0: não colidiu
+//status 1: Estava acima da plataforma e colidiu
+//status 2: Estava abaixo da plataforma e colidiu (como se fosse um teto)
+//status 3: Estava no lado esquerdo da plataforma e colidiu
+//status 4: Estava no lado direito da plataforma e colidiu
+
+
+// verifica se o player colidiu usando o método AABB 
+// e retorna um inteiro que é o status de colisão (se não colidiu ou de qual direção o player veio e colidiu)
+// para saber de onde veio, faz checagem por sobreposição (assume que sobrepos perto de onde veio)
 int player_check_collision_with_platform(struct Player *player, Platform *platform) {
-    // Coordenadas do frame atual
+    // Coordenadas do frame atual do jogador
     float player_x1 = player->x;
     float player_x2 = player->x + player->width;
     float player_y1 = player->y;
     float player_y2 = player->y + player->height;
 
+    // Coordenadas da plataforma
     float plat_x1 = platform->x;
     float plat_x2 = platform->x + platform->width;
     float plat_y1 = platform->y;
     float plat_y2 = platform->y + platform->height;
 
-    // 1. Checar se há colisão usando o método AABB correto
-    if (player_x2 <= plat_x1 || player_x1 >= plat_x2 || player_y2 <= plat_y1 || player_y1 >= plat_y2) {
+    // Verifica pelo método AABB  se o player está com certeza fora da plataforma
+    if (player_x2 <= plat_x1 || player_x1 >= plat_x2 || player_y2 <= plat_y1 || player_y1 >= plat_y2) 
         return 0; // Sem colisão
-    }
+    
 
-    // 2. Se colidiu, calcular a profundidade da sobreposição em cada eixo
-    float overlap_x1 = player_x2 - plat_x1; // Overlap vindo da esquerda
-    float overlap_x2 = plat_x2 - player_x1; // Overlap vindo da direita
-    float overlap_y1 = player_y2 - plat_y1; // Overlap vindo de cima
-    float overlap_y2 = plat_y2 - player_y1; // Overlap vindo de baixo
+    // Se colidiu, calcular a profundidade da sobreposição em cada eixo
+    float overlap_x1 = player_x2 - plat_x1; // da esquerda
+    float overlap_x2 = plat_x2 - player_x1; // da direita
+    float overlap_y1 = player_y2 - plat_y1; // de cima
+    float overlap_y2 = plat_y2 - player_y1; // de baixo
 
-    // Achar a menor sobreposição para X e Y
-    float overlap_x = (overlap_x1 < overlap_x2) ? overlap_x1 : overlap_x2;
-    float overlap_y = (overlap_y1 < overlap_y2) ? overlap_y1 : overlap_y2;
+    // Achar a menor sobreposição para X 
+    float overlap_x;
+    if (overlap_x1 < overlap_x2) overlap_x = overlap_x1;
+    else overlap_x = overlap_x2;
 
-    // 3. A direção da colisão é o eixo com a MENOR sobreposição
+    // Achar a menor sobreposição para Y
+    float overlap_y;
+    if (overlap_y1 < overlap_y2) overlap_y = overlap_y1 ;
+    else overlap_y = overlap_y2;;
+
+    // A direção da colisão é o eixo com a MENOR sobreposição
     if (overlap_y < overlap_x) {
-        // --- COLISÃO VERTICAL ---
+        // Colisão vertical
         
-        // Usamos a posição anterior (ou a velocidade) para saber se veio de cima ou de baixo
+        // Usamos a posição anterior para saber se veio de cima ou de baixo
         // center_y aqui é a posição Y do centro no frame anterior
-        if (player->center_y < plat_y1) {
+        if (player->center_y < plat_y1) 
             return 1; // Estava acima e pousou
-        } else {
+        else 
             return 2; // Estava abaixo e bateu a cabeça
-        }
 
     } else {
-        // --- COLISÃO HORIZONTAL ---
+        // Colisão horizontal
 
-        // Usamos a posição anterior (ou a velocidade) para saber o lado
+        // Usamos a posição anterior para saber o lado
         // center_x aqui é a posição X do centro no frame anterior
-        if (player->center_x < plat_x1) {
+        if (player->center_x < plat_x1) 
             return 3; // Estava à esquerda e colidiu
-        } else {
+        else 
             return 4; // Estava à direita e colidiu
-        }
+        
     }
 }
 
-//reposiciona o player de acordo com o tipo de colisão que sofreu
+
+// caso tenha colisão, ele resolve essa colisão jogando o player de volta de onde ele veio
+// Para arrumar a colisão precisa saber do status do player
 void player_resolve_collision_with_platform(struct Player *player, Platform *platform, int status) {
 
-    //colidiu com a plataforma verticalmente
+    //Estava acima da plataforma e colidiu
     if (status == 1) {
         player->y = platform->y - player->height;
         player->vy = 0;
         player->is_on_ground = 1;
     }
+
+    // Estava abaixo da plataforma e colidiu (como se fosse um teto)
     else if (status == 2) {
         player->y = platform->y + platform->height;
         player->vy = 0;
     }
+
+    // Estava no lado esquerdo da plataforma e colidiu
     else if (status == 3) {
         player->x = platform->x - player->width;
     }
+
+    // Estava no lado direito da plataforma e colidiu
     else if (status == 4) {
         player->x = platform->x + platform->width;
     }
 }
 
 //// colisão para o JA
-
 int ja_check_collision_with_platform(struct Jet_alone *ja, Platform *platform) {
     // Coordenadas do frame atual do Jet Alone
     float ja_x1 = ja->x;
@@ -97,41 +121,50 @@ int ja_check_collision_with_platform(struct Jet_alone *ja, Platform *platform) {
     float plat_y1 = platform->y;
     float plat_y2 = platform->y + platform->height;
 
-    // 1. Checar se há colisão usando o método AABB
-    if (ja_x2 <= plat_x1 || ja_x1 >= plat_x2 || ja_y2 <= plat_y1 || ja_y1 >= plat_y2) {
+    // Checar se há colisão usando o método AABB
+    if (ja_x2 <= plat_x1 || ja_x1 >= plat_x2 || ja_y2 <= plat_y1 || ja_y1 >= plat_y2) 
         return 0; // Sem colisão
-    }
+    
 
-    // 2. Se colidiu, calcular a profundidade da sobreposição em cada eixo
+    // Se colidiu, calcular a profundidade da sobreposição em cada eixo
     float overlap_x1 = ja_x2 - plat_x1;
     float overlap_x2 = plat_x2 - ja_x1;
     float overlap_y1 = ja_y2 - plat_y1;
     float overlap_y2 = plat_y2 - ja_y1;
 
-    // Achar a menor sobreposição para X e Y
-    float overlap_x = (overlap_x1 < overlap_x2) ? overlap_x1 : overlap_x2;
-    float overlap_y = (overlap_y1 < overlap_y2) ? overlap_y1 : overlap_y2;
+    // Achar a menor sobreposição para X 
+    float overlap_x;
+    if (overlap_x1 < overlap_x2) overlap_x = overlap_x1;
+    else overlap_x = overlap_x2;
 
-    // 3. A direção da colisão é o eixo com a MENOR sobreposição
+    // Achar a menor sobreposição para Y
+    float overlap_y;
+    if (overlap_y1 < overlap_y2) overlap_y = overlap_y1 ;
+    else overlap_y = overlap_y2;;
+
+    // A direção da colisão é o eixo com a menor sobreposição
     if (overlap_y < overlap_x) {
-        // --- COLISÃO VERTICAL ---
+        // colisão vertical
+
         // Usa a posição anterior para saber se veio de cima ou de baixo
-        if (ja->center_y < plat_y1) {
+        if (ja->center_y < plat_y1) 
             return 1; // Estava acima e pousou
-        } else {
+        else 
             return 2; // Estava abaixo e bateu a cabeça
-        }
+        
     } else {
-        // --- COLISÃO HORIZONTAL ---
+        // colisão horizontal
+
         // Usa a posição anterior para saber o lado
-        if (ja->center_x < plat_x1) {
+        if (ja->center_x < plat_x1) 
             return 3; // Estava à esquerda e colidiu
-        } else {
+        else 
             return 4; // Estava à direita e colidiu
-        }
+        
     }
 }
 
+// com base no status resolve a colisão
 void ja_resolve_collision_with_platform(struct Jet_alone *ja, Platform *platform, int status) {
     switch (status) {
         case 1: // Pousou no topo
@@ -153,41 +186,45 @@ void ja_resolve_collision_with_platform(struct Jet_alone *ja, Platform *platform
     }
 }
 
-// colisão de tiros e inimigos
+///////////////////////////// COLISÃO DE TIROS E INIMIGOS ////////////////////////////////////
 
-//// INIMIGO JA
-
+// verifica se o player levou dano de uma das balas de um inimigo JA
 void check_player_hit_by_ja_bullets(Player *player, Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn) {
-    if (player->is_invincible || player->life <= 0) {
+    if (player->is_invincible || player->life <= 0) 
         return;
-    }
 
     float player_x1 = player->center_x - player->hit_box_x / 2;
     float player_x2 = player->center_x + player->hit_box_x / 2;
     float player_y1 = player->center_y - player->hit_box_y / 2;
     float player_y2 = player->center_y + player->hit_box_y / 2;
 
+    //verifica todos os inimigos da fase
     for (int i = 0; i < ja_num; i++) {
         Jet_alone *current_ja = jet_alones[i];
 
+        //verifica se tá spawnado e vivo e percorre a lista encadeada que é os tiros
         if (did_jet_spawn[i] && !did_jet_died[i]) {
 
             struct ja_bullet *prev = NULL;
             struct ja_bullet *current = current_ja->ja_buster->shots;
 
+            //enquanto tiver bullet na fila encadeada, verifica
             while (current) {
                 float bullet_x1 = current->x;
                 float bullet_x2 = current->x + current->hit_box_x;
                 float bullet_y1 = current->y;
                 float bullet_y2 = current->y + current->hit_box_y;
 
+                //AABB
                 unsigned char no_collision = (player_x2 <= bullet_x1 || player_x1 >= bullet_x2 ||
                                               player_y2 <= bullet_y1 || player_y1 >= bullet_y2);
 
+                // vai pro próximo da fila
                 if (no_collision) {
                     prev = current;
                     current = current->next;
                 } else {
+                    // desconta dano
                     player->life -= current->damage;
                     player->damage_direction = current->trajectory;
                     player->is_taking_damage = 1;
@@ -208,6 +245,7 @@ void check_player_hit_by_ja_bullets(Player *player, Jet_alone **jet_alones, int 
     }
 }
 
+// verifica se o player colidiu com o JA
 void check_player_collision_with_ja(struct Player *player, struct Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn) {
     
     // Se o jogador já estiver invencível ou morto, não há necessidade de checar nada.
@@ -254,20 +292,20 @@ void check_player_collision_with_ja(struct Player *player, struct Jet_alone **je
     }
 }
 
-
+// verifica se o JA foi atingido por uma das balas
 void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **jet_alones, int ja_num, unsigned char *did_jet_died, unsigned char *did_jet_spawn) {
 
     for (int i = 0; i < ja_num; i++) {
         Jet_alone *current_ja = jet_alones[i];
 
-
+        //se tiver vivo ou spawnado
         if (did_jet_spawn[i] && !did_jet_died[i]) {
 
 
             float ja_x1 = current_ja->center_x - current_ja->hit_box_x / 2;
             float ja_x2 = current_ja->center_x + current_ja->hit_box_x / 2;
-            float ja_y1 = current_ja->center_y - current_ja->hit_box_y / 2;
-            float ja_y2 = current_ja->center_y + current_ja->hit_box_y / 2;
+            float ja_y1 = current_ja->center_y - current_ja->hit_box_y*0.4;
+            float ja_y2 = current_ja->center_y + current_ja->hit_box_y*0.65;
             
 
             bullet *prev_bullet = NULL;
@@ -285,7 +323,7 @@ void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **je
                 float bullet_y1 = current_bullet->y;
                 float bullet_y2 = current_bullet->y + current_bullet->hit_box_y;
 
-                // Lógica de colisão AABB. Se "no_collision" for verdadeiro, não houve colisão.
+                // Lógica de colisão AABB. 
                 unsigned char no_collision = (ja_x2 <= bullet_x1 || ja_x1 >= bullet_x2 ||
                                               ja_y2 <= bullet_y1 || ja_y1 >= bullet_y2);
                 
@@ -319,8 +357,8 @@ void check_ja_hit_by_player_bullets(struct Player *player, struct Jet_alone **je
     }
 }
 
-/////// CHEFAO SACHIEL
-
+/////// Chefão da primeira fase, Sachiel
+// verifica se o player levou tiro do SA
 void check_player_hit_by_sa_bullets(struct Player *player, struct Sachiel *sa) {
     if (player->is_invincible || player->life <= 0) {
         return;
@@ -331,6 +369,7 @@ void check_player_hit_by_sa_bullets(struct Player *player, struct Sachiel *sa) {
     float player_y1 = player->center_y - player->hit_box_y / 2;
     float player_y2 = player->center_y + player->hit_box_y / 2;
 
+    //percore a lista encadeada que é os tiros do Sachiel
     if (sa && sa->life > 0) {
         struct sa_bullet *prev = NULL;
         struct sa_bullet *current = sa->sa_buster->shots;
@@ -367,6 +406,7 @@ void check_player_hit_by_sa_bullets(struct Player *player, struct Sachiel *sa) {
     }
 }
 
+// Verifica se o CORAÇÃO do Sachiel levou dano
 void check_sachiel_hit_by_player_bullets(struct Player *player, struct Sachiel *sa) {
     if (sa->is_invencible || sa->life <= 0) {
         return;
@@ -410,6 +450,7 @@ void check_sachiel_hit_by_player_bullets(struct Player *player, struct Sachiel *
     }
 }
 
+// Verifica se o jogador chegou perto do coração do Sachiel para levar dano
 void check_player_collision_with_sachiel(struct Player *player, struct Sachiel *sa) {
     if (player->is_invincible || player->life <= 0 || sa->life <= 0) {
         return;

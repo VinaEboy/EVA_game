@@ -1,7 +1,12 @@
 #ifndef __ASSETS__
 #define __ASSETS__
 
+// Assets é um arquivo "cabeçalho" que tem ponteiros para imagens e estruturas de informação de cada etapa
+// é a centralização dos ativos do jogo
+
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 struct title_screen ;
 struct options ;
@@ -20,11 +25,12 @@ struct level_6;
 struct level_7;
 struct level_8;
 
+// estrutura com vários ponteiros para imagens do jogo em gameplay
 typedef struct entities_sprites {
-    ALLEGRO_BITMAP *player_run_no_gun;
-    ALLEGRO_BITMAP *player_run_gun; 
+    ALLEGRO_BITMAP *player_run_no_gun; //correndo sem "arma"
+    ALLEGRO_BITMAP *player_run_gun; // correndo com o braço levantado
     ALLEGRO_BITMAP *player_jump;
-    ALLEGRO_BITMAP *player_stopped_gun;
+    ALLEGRO_BITMAP *player_stopped_gun; // frame parado
     ALLEGRO_BITMAP *player_stopped_no_gun;
     ALLEGRO_BITMAP *player_damage; //frame para quando levar dano
     ALLEGRO_BITMAP *player_squat;
@@ -42,12 +48,12 @@ typedef struct entities_sprites {
     ALLEGRO_BITMAP *bullet_2_image; //(0 a 5) frames
     ALLEGRO_BITMAP *bullet_3_image; //(0 a 4) frames
 
-    ALLEGRO_BITMAP *jet_alone_shot; //(0 a 3) frames; É O tiro e apenas o tiro. 36x36 cada frame em uma linha
+    ALLEGRO_BITMAP *jet_alone_shot; //(0 a 3) frames; É o sprite do bullet. 36x36 cada frame em uma linha
     ALLEGRO_BITMAP *jet_alone_squat; //(0 a 1) frames; 
     ALLEGRO_BITMAP *jet_alone_stop; //2 frames, o da esquerda tá normal e o da direita tá atirando
     ALLEGRO_BITMAP *jet_alone_walk; // 2 linhas com 2 frames, na linha de cima está atirando e na debaixo não
 
-    ALLEGRO_BITMAP *sa_default_and_under;
+    ALLEGRO_BITMAP *sa_default_and_under; //sprites do chefão da 1 fase o SACHIEL
     ALLEGRO_BITMAP *sa_shot;
     ALLEGRO_BITMAP *sa_minor_p1;
     ALLEGRO_BITMAP *sa_minor_p2 ;
@@ -58,7 +64,7 @@ typedef struct entities_sprites {
     ALLEGRO_BITMAP *sa_hand;
     ALLEGRO_BITMAP *sa_life_bar;
 
-    //fases que não foram concluidas:
+    //fases que não foram concluidas e tem apenas imagem de fundo e chão:
     ALLEGRO_BITMAP *level_2_background;
     ALLEGRO_BITMAP *level_2_ground;
     ALLEGRO_BITMAP *level_3_background;
@@ -76,6 +82,8 @@ typedef struct entities_sprites {
 
 } entities_sprites;
 
+
+//estrutura que centraliza as estruturas de informações das etapas do jogo
 typedef struct game_assets {
     ALLEGRO_BITMAP *title_screen_image;
     struct title_screen *title_screen_info;
@@ -103,10 +111,15 @@ typedef struct game_assets {
     struct level_7 *level_7_info;
     struct level_8 *level_8_info;
 
-    entities_sprites *sprites; //sprites do level_1
+    entities_sprites *sprites; //sprites de gameplay
+
+    ALLEGRO_AUDIO_STREAM *current_music;
 } game_assets;
 
+//cria o game_assets como tudo NULL porque vai ser carregado (inicializado) ao iniciar uma etapa do jogo
 game_assets *game_assets_create();
+
+//libera memoria do game assets
 void game_assets_destroy(game_assets *assets);
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef __GAME_STATE__
 #define __GAME_STATE__
 
+// Arquivo que contém informações essenciais para rodar as etapas
+// informações guardadas além do próprio estado que está rodando
+
+//é o arquivo mãe, por isso está incluindo todos os outros
 #include "Assets.h"
 #include "Title_screen.h"
 #include "Level_select.h"
@@ -21,11 +25,13 @@
 #include "../levels/Level_7.h"
 #include "../levels/Level_8.h" 
 
-#define DIFFICULTY_EASY 0.75
+// a dificuldade do jogo é um fator multiplicativo
+#define DIFFICULTY_EASY 0.75 
 #define DIFFICULTY_MEDIUM 1.0
 #define DIFFICULTY_HARD 1.25
 
-
+// Estrutura com os valores chaves (para o Allegro conseguir comparar)
+// do mapeamento do teclado do jogador
 typedef struct buttom_map {
     int SHOT;
     int JUMP;
@@ -37,6 +43,7 @@ typedef struct buttom_map {
     int PAUSE;    
 } buttom_map;
 
+// informações do jogador sobre o progresso dele no jogo
 typedef struct player_data {
     int Lifes;
     float dificulty; //corresponde a um fator multiplicativo do EASY, MEDIUM, HARD
@@ -55,6 +62,7 @@ typedef struct player_data {
 
 } player_data;
 
+// a estrutura mãe, que nos informa a etapa que o jogo está
 typedef struct game_state {
     unsigned char running;
     unsigned char title_screen;
@@ -91,20 +99,24 @@ typedef struct game_state {
     unsigned char level_8;
     unsigned char level_8_started;
 
-
+    float sound_volume;
     int checkpoint; //serve para saber se está em algum checkpoint na fase 
     buttom_map *controls;
     player_data *player_progress;
 } game_state;
 
+////////////////////// Dicionário para o mapeamento de tecla //////////////////////////////////
 
+// o dicionário (chave - valor) da chave do allegro de uma tecla
+// e da string dessa tecla (para imprimir na tela em Options)
 typedef struct {
-    int keycode;         // Ex: ALLEGRO_KEY_W
-    const char *name;    // Ex: "W"
+    int keycode;         // ALLEGRO_KEY
+    const char *name;    // a tecla em si
 } key_map_t;
 
 
 //O mapeamento de teclas tem suporte para as teclas desse dicionário
+// outras teclas não são reconhecidas
 static const key_map_t key_map[] = {
     // Letras
     {ALLEGRO_KEY_A, "A"},
@@ -166,6 +178,7 @@ static const key_map_t key_map[] = {
     {ALLEGRO_KEY_RSHIFT, "RIGHT SHIFT"},
     {ALLEGRO_KEY_LCTRL, "LEFT CTRL"},
     {ALLEGRO_KEY_RCTRL, "RIGHT CTRL"},
+    {ALLEGRO_KEY_PAD_ENTER, "PAD ENTER"},
 
     // Setas
     {ALLEGRO_KEY_UP, "UP"},
@@ -175,8 +188,13 @@ static const key_map_t key_map[] = {
 
 };
 
+// cria a estrutura de progresso do player
 player_data *create_player_progress();
+
+//cria o estado do jogo
 game_state *game_state_create();
+
+//libera memória
 void game_state_destroy(game_state *state);
 
 #endif

@@ -6,13 +6,13 @@
 #include <allegro5/allegro_primitives.h>
 #include "../gameflow/Assets.h"
 
-
+// cria a bala do jogador com base no tipo de tiro (o quão carregado está)
 bullet* bullet_create(float dificulty, unsigned short x, unsigned short y, int trajectory, bullet *next, int type, int X_SCREEN, int Y_SCREEN) {
 
 	bullet *new_bullet = (bullet*) malloc(sizeof(bullet));
 	if (!new_bullet) return NULL;
 	new_bullet->type = type;
-	new_bullet->x = x; //porque atira do braço										
+	new_bullet->x = x; 									
 	new_bullet->y = y;	
 
 	switch (type) {
@@ -57,11 +57,12 @@ bullet* bullet_create(float dificulty, unsigned short x, unsigned short y, int t
 	return new_bullet;
 }
 
-
+// libera memória
 void bullet_destroy(bullet *element){					
 	free(element);					
 }
 
+// fala qual sprite da bala
 void bullet_sprite (bullet *shot, ALLEGRO_BITMAP **sprite_sheet, struct entities_sprites *sprites ) {
 	switch (shot->type) {
         case 1:
@@ -76,8 +77,9 @@ void bullet_sprite (bullet *shot, ALLEGRO_BITMAP **sprite_sheet, struct entities
     }
 }
 
-//ja
+/////////////////////// JA
 
+//cria a bullet do ja
 ja_bullet* ja_bullet_create(float dificulty, float speed, unsigned short x, unsigned short y, int trajectory, ja_bullet *next, int X_SCREEN, int Y_SCREEN) {
 
 	ja_bullet *new_bullet = (ja_bullet*) malloc(sizeof(ja_bullet));
@@ -98,13 +100,15 @@ ja_bullet* ja_bullet_create(float dificulty, float speed, unsigned short x, unsi
 	return new_bullet;
 }
 
+//libera memória
 void ja_bullet_destroy(ja_bullet *element) {					
 	free(element);					
 }
 
 ////////// SACHIEL
 
-//a diferença do tipo 1 e do tipo 2 é só o comprimento
+//a diferença do tipo 1 ,2 e 3 é só o comprimento e velocidade
+// cria a bala do chefão da 1 fase, o Sachiel
 sa_bullet* sa_bullet_create(float dificulty, float speed, unsigned short x, unsigned short y, int trajectory, sa_bullet *next, int X_SCREEN, int Y_SCREEN, int type) {
 
 	sa_bullet *new_bullet = (sa_bullet*) malloc(sizeof(sa_bullet));
@@ -112,20 +116,29 @@ sa_bullet* sa_bullet_create(float dificulty, float speed, unsigned short x, unsi
 	new_bullet->height = Y_SCREEN*0.25;
 	if (type == 1) new_bullet->width = Y_SCREEN*0.25;	
 	else if (type == 2) new_bullet->width = Y_SCREEN*0.4;
+	else if (type == 3) {
+		new_bullet->width = Y_SCREEN*0.6;
+		new_bullet->height = Y_SCREEN*0.15;
+	}
 	new_bullet->x = x; //porque atira do braço										
 	new_bullet->y = y;	
-	new_bullet->hit_box_x = 0.8*new_bullet->width ;
-	new_bullet->hit_box_y = 0.55*new_bullet->height;																														
+	if (type != 3) new_bullet->hit_box_x = 0.7*new_bullet->width ;
+	else new_bullet->hit_box_x = 0.4*new_bullet->width;
+	new_bullet->hit_box_y = 0.7*new_bullet->height;																														
 	new_bullet->trajectory = trajectory;																											
 	new_bullet->next = (struct sa_bullet*) next; 	
 	new_bullet->frame_timer = 0;
 	new_bullet->current_frame = 0;
-	new_bullet->speed = speed;
+	if (type == 1 || type == 2)
+		new_bullet->speed = speed;
+	else
+		new_bullet->speed = speed*0.4;
 
 	new_bullet->damage = SA_BULLET_DAMAGE/dificulty;
 	return new_bullet;
 }
 
+// libera memória
 void sa_bullet_destroy(sa_bullet *element) {					
 	free(element);					
 }

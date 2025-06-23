@@ -1,5 +1,6 @@
 #include "Assets.h"
 
+//cria o game_assets como tudo NULL porque vai ser carregado (inicializado) ao iniciar uma etapa do jogo
 game_assets *game_assets_create() {
     game_assets *assets = malloc(sizeof(game_assets));
     if (!assets) return NULL;
@@ -90,11 +91,14 @@ game_assets *game_assets_create() {
     
     assets->sprites = sprites;
 
+    assets->current_music = NULL;
+
     return assets;
 }
 
-//ver depois certinho os free
+//libera memoria do game assets
 void game_assets_destroy(game_assets *assets) {
+    al_destroy_audio_stream(assets->current_music);
     free(assets->sprites);
     free(assets); 
 }

@@ -29,7 +29,18 @@ game_over *game_over_info_create() {
     return game_over_info;
 }
 
-void start_game_over (game_state *state, game_over **game_over_info, ALLEGRO_BITMAP **game_over_image) {
+//inicializa o menu
+void start_game_over (game_state *state, game_over **game_over_info, ALLEGRO_BITMAP **game_over_image, ALLEGRO_AUDIO_STREAM **current_music) {
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_destroy_audio_stream(*current_music);
+    }
+    *current_music = al_load_audio_stream("sounds/Game_over_theme.ogg", 4, 2048); // (arquivo, buffer count, buffer size)
+    al_attach_audio_stream_to_mixer(*current_music, al_get_default_mixer());
+    al_set_audio_stream_playmode(*current_music, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(*current_music, state->sound_volume); // configura o volume do jogo
+
+    
     *game_over_image = al_load_bitmap("images/backscreen/game_over_screen.png");
     if (!*game_over_image) {
         fprintf(stderr, "Falha ao carregar imagem do game_over\n");
@@ -44,7 +55,7 @@ void start_game_over (game_state *state, game_over **game_over_info, ALLEGRO_BIT
     state->game_over_started = 1;
 }
 
-
+// mostra o menu
 void show_game_over (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, game_assets *assets, int X_SCREEN, int Y_SCREEN) {
 
     ALLEGRO_BITMAP *game_over_image = assets->game_over_image;
@@ -77,9 +88,9 @@ void show_game_over (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
     
 }
 
-///////////////////////////////////// Funções auxiliares do Game Over /////////////////////////////////////////////////////////////////////////
+///////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
-
+//mover para baixo no menu
 void game_over_down_move(game_over *game_over_info) {
     if (game_over_info->Load_game_selected) {
         game_over_info->Load_game_selected = 0;
@@ -99,6 +110,7 @@ void game_over_down_move(game_over *game_over_info) {
     }
 }
 
+//mover para cima no menu
 void game_over_up_move(game_over *game_over_info) {
     if (game_over_info->Back_to_title_screen_selected) {
         game_over_info->Back_to_title_screen_selected = 0;
@@ -118,6 +130,7 @@ void game_over_up_move(game_over *game_over_info) {
     }
 }
 
+//clicando em pressionar no menu
 void game_over_confirm(game_state *state,game_over *game_over_info) {
     state->checkpoint = 0;
     state->player_progress->Lifes = 3; //reseta as vidas
@@ -133,8 +146,9 @@ void game_over_confirm(game_state *state,game_over *game_over_info) {
         game_over_info->game_over_exit = 1;
     }
 }
+/////////////////////////////////////////////////////////////////////////
 
-
+// Função auxiliar para desenhar o texto no menu
 void game_over_draw_text(game_over *game_over_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
     long int coord_X = X_SCREEN/2;
@@ -151,7 +165,7 @@ void game_over_draw_text(game_over *game_over_info, ALLEGRO_FONT *font, int X_SC
 
 }
 
-
+// Sai da etapa do jogo, liberando memória alocada
 void exit_game_over(game_state *state,game_over *game_over_info, ALLEGRO_BITMAP *game_over_image) {
     state->game_over_started = 0;
     state->game_over = 0;

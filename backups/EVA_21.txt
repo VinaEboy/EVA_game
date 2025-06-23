@@ -1,9 +1,0 @@
-Tudo pronto para o nível de ser entregue e tirar nota
-Mas eu queria tentar colocar música se n for muito trampo
-
-Para entregar bonitinho: Arrumar linkagens do makefile e fazer README e fazer comentários no codigo
-
-Se der tempo, melhorar o sistema de voltar do load game (game over ou title screen)
-
-Fazer um delete save game
-

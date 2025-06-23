@@ -4,8 +4,8 @@
 #include <allegro5/allegro5.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
-// Função para criar o jogador
 
+// Função para criar o jogador
 Player* create_player(float dificulty, int x, int y, int X_SCREEN, int Y_SCREEN) {
     Player *player = malloc(sizeof(Player));
     if (!player) return NULL;
@@ -56,25 +56,9 @@ Player* create_player(float dificulty, int x, int y, int X_SCREEN, int Y_SCREEN)
     return player;
 }
 
-////////////////////////////////////////////// ANIMATION //////////////////////////////////////////////
 
-// função que muda o estado de animação
-void player_set_animation_state(Player *player, PlayerAnimState new_state) {
-    // Se a nova animação já for a que está ativa, não precisa mudar
-    if (player->current_anim_state == new_state) {
-        return;
-    }
 
-    player->current_anim_state = new_state;
-    player->current_frame = 0; // Resetamos o frame para o início da nova animação
-
-    //caso em que o frame não é por tempo e sim por estar atirando ou não no ar
-    if(!player->is_on_ground && player->is_charging_shot) 
-        player->current_frame = 1;
-
-    player->frame_timer = 0;   // Reseta o timer 
-}
-
+//atualiza o estado do jogador
 void player_update_state(Player *player, int Y_SCREEN) {
     if (player->y >= Y_SCREEN) player->life = 0;
 
@@ -115,6 +99,152 @@ void player_update_state(Player *player, int Y_SCREEN) {
         }
     }
 }
+
+//////////////////////////////////////// Posição e camera ///////////////////////////////////////////
+
+// atualiza posição do jogador
+void player_update_position (Player *player, int num_platforms, Platform **platforms, int level_width) {
+    if (player->life <= 0) return;
+    // movimento horizontal é travado se estiver agachado
+    if (player->is_moving && !player->is_squat) {
+        if (player->direction == 1) { // Direita
+            if (player->vx < player->speed) 
+                player->vx += player->speed / 3; // acelera
+            else 
+                player->vx = player->speed; //limita a velocidade ao máximo (negativo).
+            
+        } else { // Esquerda
+            if (player->vx > -player->speed) 
+                player->vx -= player->speed / 3; // acelera
+            else 
+                player->vx = -player->speed; //limita a velocidade ao máximo (negativo).
+        }
+    } 
+    
+    else {
+        // Desaceleração gradual
+        player->vx *= 0.85; 
+        if (abs(player->vx) < 0.5) 
+            player->vx = 0; // Para completamente
+        
+    }
+
+
+    // gravidade é uma aceleração
+    player->vy += player->gravity;
+
+
+    // definir a priori a nova posição e se necessário corrigir
+    player->x += player->vx;
+    player->y += player->vy;
+
+    if(player->x < 0) player->x = 0;
+    if (player->x + player->width > level_width) player->x = level_width - player->width;
+
+    // definir a priori que está no ar
+    player->is_on_ground = 0;
+
+    
+    for (int i = 0; i < num_platforms; i++) {
+        Platform *current_platform = platforms[i];
+        int status = player_check_collision_with_platform(player, current_platform);
+        
+        //significa que deu alguma colisão
+        if (status != 0) {
+            //corrige a posição do jogar se colidir
+            player_resolve_collision_with_platform(player, current_platform, status);
+        }
+    }
+
+    player->center_x = player->x + player->width/2;
+    if (!player->is_squat) {
+        player->center_y = player->y + player->width/2;
+        player->hit_box_y = player->width*0.98;
+    }
+    else {
+        player->center_y = player->y + (player->height - player->squat_height) + (player->squat_height/2); 
+        player->hit_box_y = player->squat_height;
+    }
+
+}
+
+//atualiza camera do jogador
+void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_width) {
+
+    // "zona morta" 
+    float dead_zone_left_boundary = *camera_x + X_SCREEN * 0.25;
+    float dead_zone_right_boundary = *camera_x + X_SCREEN * 0.50;
+
+    // Calcula o centro da hitbox do jogador no mundo
+    float player_center_x = player->x + (player->hit_box_x / 2.0f);
+
+    // Se o jogador ultrapassar a fronteira DIREITA da zona morta
+    if (player_center_x > dead_zone_right_boundary) {
+        // A câmera se move para manter o jogador na fronteira direita
+        *camera_x = player_center_x - (X_SCREEN * 0.50);
+    }
+    // Se o jogador ultrapassar a fronteira ESQUERDA da zona morta
+    else if (player_center_x < dead_zone_left_boundary) {
+        // A câmera se move para manter o jogador na fronteira esquerda
+        *camera_x = player_center_x - (X_SCREEN * 0.25);
+    }
+    
+    if (*camera_x < 0) {
+        *camera_x = 0;
+    }
+    if (*camera_x > level_width - X_SCREEN) {
+        *camera_x = level_width - X_SCREEN;
+    }
+}
+
+
+
+// TIRO
+void buster_fire(Player *player, int X_SCREEN, int Y_SCREEN) {
+    player->shot = 0;
+    
+    bullet *shot = NULL;
+
+    if (player->is_looking_up) shot = bullet_create(player->buster->dificulty, player->center_x + player->direction*0.4*player->width, player->center_y - player->width*0.2 , 2, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
+    else if (player->direction == 1) shot = bullet_create(player->buster->dificulty, player->center_x + 0.4*player->width, player->center_y ,player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
+    else if (player->direction == -1) shot = bullet_create(player->buster->dificulty,player->center_x - player->width/2, player->center_y , player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
+    if (shot) player->buster->shots = shot;
+
+    player->charge_shot = 1;
+    player->timer_charge_shot = 0;
+}
+
+//libera memória
+void player_destroy(Player *player) {
+    buster_destroy(player->buster);
+    free(player);
+}
+
+
+///////////////////////////////////////// Animação ////////////////////////////////////////////////
+
+// função que muda o estado de animação
+void player_set_animation_state(Player *player, PlayerAnimState new_state) {
+    // Se a nova animação já for a que está ativa, não precisa mudar
+    if (player->current_anim_state == new_state) {
+        return;
+    }
+
+    player->current_anim_state = new_state;
+
+    //se for enquanto corre não resetar o frame
+    if (player->current_anim_state != ANIM_RUN_GUN && player->current_anim_state != ANIM_RUN_NO_GUN && player->current_anim_state != ANIM_RUN_GUN_UP ) {
+        player->current_frame = 0; // Resetamos o frame para o início da nova animação
+        player->frame_timer = 0;   // Reseta o timer 
+    }
+
+
+    //caso em que o frame não é por tempo e sim por estar atirando ou não no ar
+    if(!player->is_on_ground && player->is_charging_shot) 
+        player->current_frame = 1;
+
+}
+
 
 // Atualiza/avança os frames da animação
 void player_update_animation(Player *player) {
@@ -182,7 +312,8 @@ void player_update_animation(Player *player) {
     }
 }
 
-//também muda hitbox e centro do personagem caso se agache
+// atualiza sprite do jogador definitivamente, ela chama as outras duas funções de sprite
+// como auxiliares
 void update_player_sprite(Player *player) {
 
     PlayerAnimState desired_state;
@@ -217,6 +348,7 @@ void update_player_sprite(Player *player) {
     player_update_animation(player);
 }
 
+// retorna o sprite do player, a função de desenhar usa ela
 void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row) {
 
     switch (player->current_anim_state) {
@@ -274,122 +406,3 @@ void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprit
     }
 
 }
-
-
-//////////////////////////////////////// POSITION ///////////////////////////////////////////
-void player_update_position (Player *player, int num_platforms, Platform **platforms, int level_width) {
-    if (player->life <= 0) return;
-    // movimento horizontal é travado se estiver agachado
-    if (player->is_moving && !player->is_squat) {
-        if (player->direction == 1) { // Direita
-            if (player->vx < player->speed) 
-                player->vx += player->speed / 3; // acelera
-            else 
-                player->vx = player->speed; //limita a velocidade ao máximo (negativo).
-            
-        } else { // Esquerda
-            if (player->vx > -player->speed) 
-                player->vx -= player->speed / 3; // acelera
-            else 
-                player->vx = -player->speed; //limita a velocidade ao máximo (negativo).
-        }
-    } 
-    
-    else {
-        // Desaceleração gradual
-        player->vx *= 0.85; 
-        if (abs(player->vx) < 0.5) 
-            player->vx = 0; // Para completamente
-        
-    }
-
-
-    // gravidade é uma aceleração
-    player->vy += player->gravity;
-
-
-    // definir a priori a nova posição e se necessário corrigir
-    player->x += player->vx;
-    player->y += player->vy;
-
-    if(player->x < 0) player->x = 0;
-    if (player->x + player->width > level_width) player->x = level_width - player->width;
-
-    // definir a priori que está no ar
-    player->is_on_ground = 0;
-
-    
-    for (int i = 0; i < num_platforms; i++) {
-        Platform *current_platform = platforms[i];
-        int status = player_check_collision_with_platform(player, current_platform);
-        
-        //significa que deu alguma colisão
-        if (status != 0) {
-            //corrige a posição do jogar se colidir
-            player_resolve_collision_with_platform(player, current_platform, status);
-        }
-    }
-
-    player->center_x = player->x + player->width/2;
-    if (!player->is_squat) {
-        player->center_y = player->y + player->width/2;
-        player->hit_box_y = player->width*0.98;
-    }
-    else {
-        player->center_y = player->y + (player->height - player->squat_height) + (player->squat_height/2); 
-        player->hit_box_y = player->squat_height;
-    }
-
-}
-
-void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_width) {
-
-    // "zona morta" 
-    float dead_zone_left_boundary = *camera_x + X_SCREEN * 0.25;
-    float dead_zone_right_boundary = *camera_x + X_SCREEN * 0.50;
-
-    // Calcula o centro da hitbox do jogador no mundo
-    float player_center_x = player->x + (player->hit_box_x / 2.0f);
-
-    // Se o jogador ultrapassar a fronteira DIREITA da zona morta
-    if (player_center_x > dead_zone_right_boundary) {
-        // A câmera se move para manter o jogador na fronteira direita
-        *camera_x = player_center_x - (X_SCREEN * 0.50);
-    }
-    // Se o jogador ultrapassar a fronteira ESQUERDA da zona morta
-    else if (player_center_x < dead_zone_left_boundary) {
-        // A câmera se move para manter o jogador na fronteira esquerda
-        *camera_x = player_center_x - (X_SCREEN * 0.25);
-    }
-    
-    if (*camera_x < 0) {
-        *camera_x = 0;
-    }
-    if (*camera_x > level_width - X_SCREEN) {
-        *camera_x = level_width - X_SCREEN;
-    }
-}
-
-
-
-// TIRO
-void buster_fire(Player *player, int X_SCREEN, int Y_SCREEN) {
-    player->shot = 0;
-    
-    bullet *shot = NULL;
-
-    if (player->is_looking_up) shot = bullet_create(player->buster->dificulty, player->center_x + player->direction*0.4*player->width, player->center_y - player->width*0.2 , 2, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
-    else if (player->direction == 1) shot = bullet_create(player->buster->dificulty, player->center_x + 0.4*player->width, player->center_y ,player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
-    else if (player->direction == -1) shot = bullet_create(player->buster->dificulty,player->center_x - player->width/2, player->center_y , player->direction, player->buster->shots, player->charge_shot, X_SCREEN, Y_SCREEN);
-    if (shot) player->buster->shots = shot;
-
-    player->charge_shot = 1;
-    player->timer_charge_shot = 0;
-}
-
-void player_destroy(Player *player) {
-    buster_destroy(player->buster);
-    free(player);
-}
-
-

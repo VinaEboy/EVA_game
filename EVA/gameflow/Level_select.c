@@ -3,6 +3,7 @@
 #include <allegro5/allegro5.h>																																												
 #include <allegro5/allegro_font.h>	
 
+//cria a informação inicial
 level_select *level_select_info_create() {
     level_select *level_select_info = (level_select *) malloc (sizeof(level_select));
     if (!level_select_info) return NULL;
@@ -20,7 +21,6 @@ level_select *level_select_info_create() {
     level_select_info->Back_title_screen_color = al_map_rgb(255, 255, 255);
     level_select_info->Save_game_selected = 0; 
     level_select_info->Save_game_color = al_map_rgb(255, 255, 255); 
-    level_select_info->warning_no_level = 0;
     level_select_info->level_select_exit = 0;
     level_select_info->timer = 0;
     level_select_info->warning_return_title_screen = 0;
@@ -29,7 +29,17 @@ level_select *level_select_info_create() {
     return level_select_info;
 }   
 
-void start_level_select(game_state *state, level_select **level_select_info, ALLEGRO_BITMAP **level_select_image ) {
+// inicializa
+void start_level_select(game_state *state, level_select **level_select_info, ALLEGRO_BITMAP **level_select_image, ALLEGRO_AUDIO_STREAM **current_music ) {
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_destroy_audio_stream(*current_music);
+    }
+    *current_music = al_load_audio_stream("sounds/Level_select_theme.ogg", 4, 2048); // (arquivo, buffer count, buffer size)
+    al_attach_audio_stream_to_mixer(*current_music, al_get_default_mixer());
+    al_set_audio_stream_playmode(*current_music, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(*current_music, state->sound_volume); // configura o volume do jogo
+    
     *level_select_image = al_load_bitmap("images/backscreen/level_select_screen.png");
     if (!*level_select_image) {
         fprintf(stderr, "Falha ao carregar imagem da seleção de fase\n");
@@ -43,8 +53,9 @@ void start_level_select(game_state *state, level_select **level_select_info, ALL
     state->level_select_started = 1;
 }
 
+// mostra na tela
 void show_level_select(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_BITMAP *level_select_image, 
-                        level_select *level_select_info, int X_SCREEN, int Y_SCREEN) {
+                        level_select *level_select_info, int X_SCREEN, int Y_SCREEN, ALLEGRO_AUDIO_STREAM **current_music) {
         
     al_clear_to_color(al_map_rgb(0, 0, 0));
 
@@ -74,10 +85,6 @@ void show_level_select(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
     
     level_select_draw_text(font, level_select_info, X_SCREEN, Y_SCREEN);
 
-    if (level_select_info->warning_no_level) {
-        warning_no_level( font, X_SCREEN, Y_SCREEN);
-        level_select_info->timer = 0; //para não ficar piscando enquanto tem o aviso de no level
-    }
 
     if(level_select_info->warning_return_title_screen) 
         warning_return_title_screen(state, level_select_info, font, X_SCREEN, Y_SCREEN);
@@ -86,10 +93,11 @@ void show_level_select(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
 
     al_flip_display();
     
-    if (level_select_info->level_select_exit) exit_level_select(state, level_select_info,level_select_image);
+    if (level_select_info->level_select_exit) exit_level_select(state, level_select_info,level_select_image, current_music);
 }
 
-////////////////////////////// auxiliares ////////////////////
+///////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
+
 
 /* Level_select screen:
 
@@ -99,8 +107,8 @@ BACK              4      SHINJI      5        Save Game
 
 */
 
+// mover para esquerda
 void level_select_left_move(level_select *level_select_info) {
-    if (level_select_info->warning_no_level) return;
 
     if (level_select_info->Level_1_selected || level_select_info->Level_4_selected || level_select_info->Level_6_selected) {
         level_select_info->Level_1_selected = 0; //tudo bem se sobrescrever algum desses com 0
@@ -137,8 +145,8 @@ void level_select_left_move(level_select *level_select_info) {
     }
 }
 
+// mover para direita
 void title_screen_right_move(level_select *level_select_info) {
-    if (level_select_info->warning_no_level) return;
 
     if (level_select_info->Level_3_selected || level_select_info->Level_5_selected || level_select_info->Level_8_selected) {
         level_select_info->Level_3_selected = 0; //tudo bem se sobrescrever algum desses com 0
@@ -175,8 +183,8 @@ void title_screen_right_move(level_select *level_select_info) {
 
 }
 
+//mover para baixo
 void level_select_down_move(level_select *level_select_info) {
-    if (level_select_info->warning_no_level) return;
 
     if (level_select_info->Level_1_selected) {
         level_select_info->Level_1_selected = 0;
@@ -199,8 +207,8 @@ void level_select_down_move(level_select *level_select_info) {
     }
 }
 
+//mover para cima
 void level_select_up_move(level_select *level_select_info) {
-    if (level_select_info->warning_no_level) return;
 
     if (level_select_info->Level_4_selected) {
         level_select_info->Level_4_selected = 0;
@@ -223,17 +231,8 @@ void level_select_up_move(level_select *level_select_info) {
     }
 }
 
-
+//apertar confimar (selecionar uma fase ou outra etapa)
 void level_select_confirm(game_state *state,level_select *level_select_info,ALLEGRO_BITMAP *level_select_image) {
-    if (level_select_info->warning_no_level) {
-        level_select_info->warning_no_level = 0;
-        return;
-    }
-
-    if (level_select_info->Shinji_selected) {
-        level_select_info->warning_no_level = 1;
-        return;
-    }
     
     if (level_select_info->Back_title_screen_selected) {
         level_select_info->warning_return_title_screen = 1;
@@ -309,18 +308,11 @@ void level_select_confirm(game_state *state,level_select *level_select_info,ALLE
 
 }
 
-void warning_no_level(ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
+////////////////////////////////////////////////////////////////////////////////////
 
-    al_draw_filled_rectangle(X_SCREEN/4, Y_SCREEN/4, 3*X_SCREEN/4, 3*Y_SCREEN/4, al_map_rgb(0, 0, 0));
+////////////////////////////////////// AUXILIARES//////////////////////////////////
 
-    al_draw_text(font, al_map_rgb(255, 255, 255), X_SCREEN/2, 3*Y_SCREEN/8, ALLEGRO_ALIGN_CENTER,
-                "Level not available yet");
-
-    al_draw_text(font, al_map_rgb(184, 134, 11), X_SCREEN/2, 5*Y_SCREEN/8, ALLEGRO_ALIGN_CENTER,
-                "Press CONFIRM to continue");
-}
-
-
+//desenha o texto
 void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select_info, int X_SCREEN, int Y_SCREEN) {
  
     al_draw_text(font, level_select_info->Save_game_color, 7*X_SCREEN/8, Y_SCREEN/2, ALLEGRO_ALIGN_CENTER, "Save Game");
@@ -355,9 +347,18 @@ void level_select_draw_text(ALLEGRO_FONT *font, level_select *level_select_info,
 
 }
 
-void exit_level_select (game_state *state, level_select *level_select_info,ALLEGRO_BITMAP *level_select_image ) {
+// libera memória ao sair da etapa
+void exit_level_select (game_state *state, level_select *level_select_info,ALLEGRO_BITMAP *level_select_image,ALLEGRO_AUDIO_STREAM **current_music) {
     state->level_select = 0;
     state->level_select_started = 0;
+
+    //destroi a música da fase de seleção para não ficar tocando em outros lugares
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_detach_audio_stream(*current_music);
+        al_destroy_audio_stream(*current_music);
+        *current_music = NULL;
+    }
 
     //significa que está voltando para tela principal, ou seja, a informação do player_progress reseta
     if (state->title_screen) {
@@ -369,6 +370,7 @@ void exit_level_select (game_state *state, level_select *level_select_info,ALLEG
     al_destroy_bitmap(level_select_image);
 }
 
+//aviso de que vai perder progresso ao retornar para tela principal
 void warning_return_title_screen(game_state *state, level_select *level_select_info,ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
     al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -387,6 +389,7 @@ void warning_return_title_screen(game_state *state, level_select *level_select_i
     }
 }
 
+//feedback visual de que a fase foi concluida, colocando um quadrado cinza em cima do chefão derroado
 void draw_defeated_levels(game_state *state, int X_SCREEN, int Y_SCREEN) {
     // cinza opaco para desenhar por cima dos chefes derrotados
     ALLEGRO_COLOR defeated_overlay_color = al_map_rgba(40, 40, 40, 153);

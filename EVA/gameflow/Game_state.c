@@ -4,6 +4,7 @@
 #include "Title_screen.h"
 #include <allegro5/allegro5.h>	
 
+// cria a estrutura de progresso do player
 player_data *create_player_progress() {
     player_data *player_progress = (player_data *) malloc(sizeof(player_data));
     if (!player_progress) {
@@ -24,6 +25,8 @@ player_data *create_player_progress() {
     player_progress->total_play_time = 0;
     return player_progress;
 }
+
+//cria o estado do jogo
 game_state *game_state_create() {
     game_state *new_game_state = (game_state*) malloc(sizeof(game_state));
     if(!new_game_state) return NULL;
@@ -45,6 +48,7 @@ game_state *game_state_create() {
     new_game_state->game_over_started = 0;
     new_game_state->game_end = 0;
     new_game_state->game_end_started = 0;
+    new_game_state->sound_volume = 0.5; //volume inicial
 
     new_game_state->level_1 = 0;
     new_game_state->level_1_started = 0;
@@ -71,12 +75,13 @@ game_state *game_state_create() {
         free(new_game_state);
         return NULL;
     } 
-    controls->SHOT = ALLEGRO_KEY_K ;
-    controls->JUMP = ALLEGRO_KEY_SPACE;
-    controls->LEFT = ALLEGRO_KEY_A;
-    controls->RIGHT = ALLEGRO_KEY_D;
-    controls->UP = ALLEGRO_KEY_W;
-    controls->DOWN = ALLEGRO_KEY_S;
+    
+    controls->SHOT = ALLEGRO_KEY_Z ; // Botões padrões do jogo
+    controls->JUMP = ALLEGRO_KEY_X;
+    controls->LEFT = ALLEGRO_KEY_LEFT;
+    controls->RIGHT = ALLEGRO_KEY_RIGHT;
+    controls->UP = ALLEGRO_KEY_UP;
+    controls->DOWN = ALLEGRO_KEY_DOWN;
     controls->CONFIRM = ALLEGRO_KEY_ENTER;
     controls->PAUSE = ALLEGRO_KEY_ESCAPE;    
     new_game_state->controls = controls;

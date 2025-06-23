@@ -12,7 +12,7 @@
 #define CHARGE_BLINK_SPEED 9
 // Dimensões do frame do player
 #define PLAYER_PUSHBACK 20
-#define DAMAGE_TIME 30 
+#define DAMAGE_TIME 10
 #define INVINCIBLE_TIME 75
 #define PLAYER_DEATH_FRAME_WIDTH 256
 #define PLAYER_DEATH_FRAME_HEIGHT 256
@@ -81,26 +81,19 @@ typedef struct Player {
     int frame_timer;        
 } Player;
 
+// Função para criar o jogador
 Player* create_player(float dificulty, int x, int y, int X_SCREEN, int Y_SCREEN);
 
-// ANIMATION
-
-// A função que vai gerenciar a troca de animações 
-void player_set_animation_state(Player *player, PlayerAnimState new_state);
-
+//atualiza o estado do jogador
 void player_update_state(Player *player, int Y_SCREEN);
 
-// A função que vai avançar os frames da animação ativa 
-void player_update_animation(Player *player);
 
-void update_player_sprite(Player *player);
+//////////////////////////////////////// Posição e camera ///////////////////////////////////////////
 
-void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row);
-
-// POSITION
-
+// atualiza posição do jogador
 void player_update_position (Player *player, int num_platforms, Platform **platforms, int level_width);
 
+//atualiza camera do jogador
 void update_camera(Player *player, float *camera_x, int X_SCREEN, float level_width);
 
 
@@ -113,5 +106,21 @@ void resolve_collision_with_platform(Player *player, Platform *platform, int sta
 int check_collision_with_platform(Player *player, Platform *platform);
 
 void player_destroy(Player *player);
+
+
+///////////////////////////////////////// Animação ////////////////////////////////////////////////
+
+// função que muda o estado de animação
+void player_set_animation_state(Player *player, PlayerAnimState new_state);
+
+// Atualiza/avança os frames da animação
+void player_update_animation(Player *player);
+
+// atualiza sprite do jogador definitivamente, ela chama as outras duas funções de sprite
+// como auxiliares
+void update_player_sprite(Player *player);
+
+// retorna o sprite do player, a função de desenhar usa ela
+void player_sprite(Player *player, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites, int *frames_per_row);
 
 #endif

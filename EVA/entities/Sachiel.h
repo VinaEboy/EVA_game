@@ -1,6 +1,7 @@
 #ifndef __SACHIEL__
 #define __SACHIEL__
 
+// implementação do chefão da 1 fase, o Sachiel
 
 #include "Buster.h" //para atirar
 #include <allegro5/allegro_image.h>
@@ -14,7 +15,7 @@
 #define INVENCIBLE_TIME 20
 #define SA_ARM_UP_TIME 25
 #define FIRE_TIME 40
-#define POSITION_TIME 510
+#define POSITION_TIME 400
 #define SHOT_UP_PROBABILITY 0.5
 #define MINOR_ANIMATION 10
 #define SACHIEL_DEATH_TIME 60 //o tempo que o jogo vai ficar rodando depois do chefão ser derrotado
@@ -79,17 +80,37 @@ typedef struct Sachiel {
     int level_width; //metadado
 } Sachiel;
 
+//cria o chefão
 Sachiel *create_sa(float dificulty, int X_SCREEN, int Y_SCREEN);
+
+//funções para atualizar tudo que é necessário do Sachiel
 void update_sa(Sachiel *sa, Player *player, int X_SCREEN, int Y_SCREEN);
+
+// atualiza o estado dele 
 void update_state_sa (Sachiel *sa, Player *player, int X_SCREEN, int Y_SCREEN);
+
+//o coração vai ter 2 modos de andar: O modo padrão 0 que ele fica indo para cima e para baixo na ETAPA1
+//e o modo de transição que ele vai para outro lado da tela, no modo 2
 void update_heart_position (Sachiel *sa, int level_width, int X_SCREEN, int Y_SCREEN);
+
+// faz a ação correspondente ao estado dele
 void action_sa(Sachiel *sa, int X_SCREEN, int Y_SCREEN );
+
+////////////////////////////// AÇÕES DOS ESTADOS ////////////////////////////////////////////////
+
+//movimento default do coração
 void heart_default_move(Sachiel *sa, int X_SCREEN, int Y_SCREEN);
+
+// ação dele mudar de lado, incluindo animação
 void switching_side_sa(Sachiel *sa, int X_SCREEN) ;
-void going_cel_sa(Sachiel *sa);
-void ceiling_sa(Sachiel *sa);
+
+// sprite correspondente ao estado dele, útil para o arquivo Draw
 void sa_sprite (Sachiel *sa, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites) ;
+
+// ação de atirar de acordo com o estado em que ele está
 void sa_buster_fire(Sachiel *sa, int X_SCREEN, int Y_SCREEN);
+
+// libera memória
 void sa_destroy(struct Sachiel *sa);
 
 #endif

@@ -1,7 +1,0 @@
-- Fazer "warning" antes dos vilões
-- música de fundo 
-- sons para os inimigos
-- animação de derrota do vilão
-- menu de seleção que o olho do Shinji acompanha
-- washing machine heart 8 bits
-- Oração de Travessos em 8 bits

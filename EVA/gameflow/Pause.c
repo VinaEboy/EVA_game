@@ -37,6 +37,7 @@ pause_game *pause_info_create() {
     return pause_info;
 }
 
+// inicializa
 void start_pause (game_state *state, pause_game **pause_info, ALLEGRO_BITMAP **pause_image) {
     *pause_image = al_load_bitmap("images/backscreen/pause_screen.png");
     if (!*pause_image) {
@@ -52,7 +53,7 @@ void start_pause (game_state *state, pause_game **pause_info, ALLEGRO_BITMAP **p
     state->pause_started = 1;
 }
 
-
+// mostra
 void show_pause (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, game_assets *assets, int X_SCREEN, int Y_SCREEN) {
 
     ALLEGRO_BITMAP *pause_image = assets->pause_image;
@@ -91,9 +92,9 @@ void show_pause (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, AL
     }
 }
 
-///////////////////////////////////// Funções auxiliares de Pause /////////////////////////////////////////////////////////////////////////
+/////////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
-
+// para baixo
 void pause_down_move(pause_game *pause_info) {
     if (pause_info->Return_to_mission_selected) {
         pause_info->Return_to_mission_selected = 0;
@@ -113,6 +114,7 @@ void pause_down_move(pause_game *pause_info) {
     }
 }
 
+// para cima
 void pause_up_move(pause_game *pause_info) {
     if (pause_info->Back_to_title_screen_selected) {
         pause_info->Back_to_title_screen_selected = 0;
@@ -132,6 +134,7 @@ void pause_up_move(pause_game *pause_info) {
     }
 }
 
+// confirmar
 void pause_confirm(game_state *state,pause_game *pause_info) {
     if (pause_info->Return_to_mission_selected) {
         pause_info->pause_exit = 1;
@@ -146,7 +149,11 @@ void pause_confirm(game_state *state,pause_game *pause_info) {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////// Auxiliares /////////////////////////////////////////
+
+// desenha o texto
 void pause_draw_text(pause_game *pause_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
     long int coord_X = X_SCREEN/3;
@@ -164,7 +171,7 @@ void pause_draw_text(pause_game *pause_info, ALLEGRO_FONT *font, int X_SCREEN, i
 }
 
 
-//Tem que pensar em como eu vou descarregar a primeira fase também
+// sai da etapa de pause
 void exit_pause(game_state *state,pause_game *pause_info, ALLEGRO_BITMAP *pause_image) {
     state->pause_started = 0;
     state->pause = 0;
@@ -173,6 +180,7 @@ void exit_pause(game_state *state,pause_game *pause_info, ALLEGRO_BITMAP *pause_
 }
 
 //tem que "lembrar" qual level que estava
+// sai do level que estava (porque o pause está disponivel no level)
 void exit_level(game_state *state, game_assets *assets) {
     if (state->level_1)
         exit_level_1(state, assets->level_1_info, assets->sprites);
@@ -191,7 +199,7 @@ void exit_level(game_state *state, game_assets *assets) {
     else if (state->level_8)
         exit_level_8(state,assets->level_8_info,assets->sprites);
 
-
+    state->checkpoint = 0;
     if (state->title_screen) { //se vai voltar para o title_screen, não precisa da informação de jogo atual
         free(state->player_progress);
         state->player_progress = create_player_progress();

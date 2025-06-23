@@ -8,69 +8,69 @@
 
 void draw_level_1_background(float camera_x, entities_sprites *sprites, int X_SCREEN, int Y_SCREEN, float FLOOR) {
 
-    ALLEGRO_BITMAP *bg_tile_A = sprites->level_1_background;
-    ALLEGRO_BITMAP *bg_tile_B = sprites->level_1_background_final;
+    ALLEGRO_BITMAP *bg_A = sprites->level_1_background;
+    ALLEGRO_BITMAP *bg_B = sprites->level_1_background_final;
 
-    if (!bg_tile_A || !bg_tile_B) return;
+    if (!bg_A || !bg_B) return;
     
     float current_world_x = 0;
-    long tile_width = X_SCREEN;
+    long img_width = X_SCREEN;
     const int num_tiles = 7;
 
     for (int i = 0; i < num_tiles; i++) {
-        ALLEGRO_BITMAP *current_tile_image = NULL;
+        ALLEGRO_BITMAP *current_bg_image = NULL;
         int flip_flag = 0; // definir a priori
 
         switch (i) {
             case 0: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = 0;
                 break;
             case 1: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = ALLEGRO_FLIP_HORIZONTAL;
                 break;
             case 2: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = 0;
                 break;
             case 3: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = ALLEGRO_FLIP_HORIZONTAL;
                 break;
             case 4: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = 0;
                 break;
             case 5: 
-                current_tile_image = bg_tile_A;
+                current_bg_image = bg_A;
                 flip_flag = ALLEGRO_FLIP_HORIZONTAL;
                 break;
             case 6:
-                current_tile_image = bg_tile_B;
+                current_bg_image = bg_B;
                 flip_flag = 0;
                 break;
         }
 
 
-        // Verifica se o tile atual está dentro da área visível da câmera (Culling)
-        if ((current_world_x + tile_width) >= camera_x && current_world_x <= (camera_x + X_SCREEN)) {
+        // Verifica se o a img atual está dentro da área visível da câmera (Culling)
+        if ((current_world_x + img_width) >= camera_x && current_world_x <= (camera_x + X_SCREEN)) {
             
             float draw_x = current_world_x - camera_x;
 
             al_draw_scaled_bitmap(
-                current_tile_image,
+                current_bg_image,
                 0, 0,                                // (sx, sy) Pega a imagem de origem inteira
-                al_get_bitmap_width(current_tile_image), // (sw) Largura da imagem de origem
-                al_get_bitmap_height(current_tile_image), // (sh) Altura da imagem de origem
+                al_get_bitmap_width(current_bg_image), // (sw) Largura da imagem de origem
+                al_get_bitmap_height(current_bg_image), // (sh) Altura da imagem de origem
                 draw_x, 0,                           // (dx, dy) Posição na tela
-                tile_width, Y_SCREEN - FLOOR, // (dw, dh) Tamanho final, escalando a altura
+                img_width, Y_SCREEN - FLOOR, // (dw, dh) Tamanho final, escalando a altura
                 flip_flag
             );
         }
 
-        // Avança a posição X para o próximo tile
-        current_world_x += tile_width;
+        // Avança a posição X para o próximo img
+        current_world_x += img_width;
     }
 
 }
@@ -150,18 +150,47 @@ void draw_player(ALLEGRO_FONT *font, game_state *state, float camera_x, Player *
     if (player->is_charging_shot)
         draw_charging_EVA(camera_x, player, &tint_color, sprites);
 
+
+    
     if (!player->is_invincible || (player->invincible_timer / 4) % 2 != 0) {
-        al_draw_tinted_bitmap_region(
-        sprite_sheet,
-        tint_color,          // A cor de tingimento que calculamos
-        frame_x, frame_y,
-        player->width, player->height,
-        player->x - camera_x, 
-        player->y,
-        flip_flag
+
+        // as constantes para o tamanho do frame 
+        const float SRC_FRAME_WIDTH = 256.0f;
+        const float SRC_FRAME_HEIGHT = 256.0f;
+
+        // o tamanho que o jogador terá na tela
+        float dest_width = player->width;
+        float dest_height = player->height;
+
+        // fatores de ESCALA
+        float scale_x = dest_width / SRC_FRAME_WIDTH;
+        float scale_y = dest_height / SRC_FRAME_HEIGHT;
+        
+        // ponto central dos frames
+        float dest_x_center = (player->x - camera_x) + (dest_width / 2.0f);
+        float dest_y_center = player->y + (dest_height / 2.0f);
+
+        // desenho com filtro e escalonado
+        al_draw_tinted_scaled_rotated_bitmap_region(
+            sprite_sheet,
+            // Região de Origem 
+            frame_x, frame_y, SRC_FRAME_WIDTH, SRC_FRAME_HEIGHT,
+    
+            tint_color,
+            // O pivô, relativo à origem (o centro do frame)
+            SRC_FRAME_WIDTH / 2.0f, SRC_FRAME_HEIGHT / 2.0f,
+            // Posição de DESTINO (para onde o pivô vai na tela)
+            dest_x_center,  
+            dest_y_center, 
+            // Fatores de Escala
+            scale_x, scale_y,
+            // Ângulo
+            0,
+            // Flags
+            flip_flag
         );
     }
-
+    
     draw_life_bar_EVA(font, state,camera_x, player, sprites, X_SCREEN, Y_SCREEN);
 
 }
@@ -235,9 +264,11 @@ void draw_bullets(float camera_x, Player *player, entities_sprites *sprites) {
 //Modifica o tingimento que vai piscar se estiver carregando  tiro
 void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color, entities_sprites *sprites) {
     // Usa a função seno com o tempo de jogo para criar uma pulsação suave.
+    // como o seno tá entre -1 e 1, é feito uma +1 para deslocar entre 0 e 2,
+    // e dai dividido por 2 para ficar entre 0 e 1, um valor de porcentagem para a intensidade do brilho
     float pulse = (sin(al_get_time() * CHARGE_BLINK_SPEED) + 1.0f) / 2.0f; // Valor entre 0.0 e 1.0
 
-    //definir a priori
+    //definir a priori o tingimento como branco (que não tem efeito)
     int target_r = 255, target_g = 255, target_b = 255; 
 
     switch (player->charge_shot) {
@@ -259,6 +290,7 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
     }
 
     // Mistura a cor normal (branco) com a cor alvo (verde) usando a pulsação.
+    // o pulso define o quão forte é essa mistura
     int final_r = 255 + (target_r - 255) * pulse;
     int final_g = 255 + (target_g - 255) * pulse;
     int final_b = 255 + (target_b - 255) * pulse;
@@ -281,6 +313,7 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
     // Usa o blender aditivo para o efeito de brilho
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ONE);
 
+    // o player com charge 1 não tem um circulo no fundo indicando que tá carregado
     if (player->charge_shot == 2 || player->charge_shot == 3)
         al_draw_tinted_bitmap_region(
             sprites->charging_shot,
@@ -290,7 +323,7 @@ void draw_charging_EVA(float camera_x, Player *player, ALLEGRO_COLOR *tint_color
             0
         );
 
-    // Restaura o modo de desenho padrão
+    // Restaura o modo de desenho padrão para não afetar os outros desenhos
     al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_INVERSE_ALPHA);
 
 }
@@ -647,7 +680,6 @@ void draw_sa_death(float camera_x, Sachiel *sa, entities_sprites *sprites ) {
         0                       // Flags (0 = sem espelhamento)
     );
 }
-
 
 
 /// Desenha os cenários do level 2, 3 .. 8

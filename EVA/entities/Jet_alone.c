@@ -3,6 +3,7 @@
 #include <time.h>   // Para time()
 #include <math.h>
 
+//aloca memória para o personagem
 Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y, int direction, float distance_to_player, int X_SCREEN, int Y_SCREEN) {
     Jet_alone *ja = (Jet_alone *)malloc(sizeof(Jet_alone));
     if (!ja) return NULL;
@@ -21,11 +22,13 @@ Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y,
     ja->is_taking_damage = 0;
     
     ja->height = Y_SCREEN/2;
-    ja->width = Y_SCREEN/2;
+    ja->width = Y_SCREEN/2; //para ficar um quadrado
     ja->squat_height = ja->height*0.56;
 
     ja->x = x, 
     ja->y = y;
+    if (y >= 1.1*Y_SCREEN) ja->y = 0;
+    
     ja->center_x = x + ja->width/2;
     ja->center_y = y + ja->height/2;
     ja->hit_box_x = 0.4*ja->width;
@@ -50,6 +53,7 @@ Jet_alone *ja_create(float dificulty, float squat_probability, float x, float y,
     return ja;
 }
 
+//faz os updates necessários do ja (de estado e de ação)
 void update_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN, int Y_SCREEN) {
 
     update_state_ja(ja, camera_x, player, X_SCREEN);
@@ -57,6 +61,8 @@ void update_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN, int 
 
 }
 
+
+//com base no estado retorna o sprite
 void ja_sprite (Jet_alone *ja, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *sprites) {
 
     switch (ja->state) {
@@ -79,8 +85,8 @@ void ja_sprite (Jet_alone *ja, ALLEGRO_BITMAP **sprite_sheet, entities_sprites *
 
 }
 
+// atualiza posição
 void update_ja_position (Jet_alone *ja, int num_platforms, Platform **platforms, int level_width) {
-
     
     int ja_ledge_status = ja_check_for_ledge(ja, platforms, num_platforms);
     if (ja_ledge_status == 0) {
@@ -186,6 +192,7 @@ void update_state_ja(Jet_alone *ja, float camera_x, Player *player, int X_SCREEN
 
 }
 
+//chama a função correspondente a ação dele no estado
 void action_ja(Jet_alone *ja, Player *player, int X_SCREEN, int Y_SCREEN) {
     switch (ja->state) {
         case JA_WALK:
@@ -206,7 +213,9 @@ void action_ja(Jet_alone *ja, Player *player, int X_SCREEN, int Y_SCREEN) {
     }
 }
 
-//estados em que o ja pode estar
+////////////// Ações de Estado ///////////////////////////////////////
+
+//ele se movendo atrás do player
 void move_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->frame_timer++;
     if (ja->frame_timer > JA_WALK_ANIMATION) {
@@ -240,6 +249,7 @@ void move_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
 
 }
 
+// ele se agachando
 void squat_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->frame_timer++;
     if (ja->frame_timer > JA_SQUAT_ANIMATION && ja->current_frame == 0)
@@ -253,6 +263,7 @@ void squat_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
 
 }
 
+// ele parado atirando
 void stop_ja(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->shot_timer++;
     if (ja->shot_timer > JA_SHOT_COOLDOWN) 
@@ -281,29 +292,30 @@ void ja_buster_fire(Jet_alone *ja, int X_SCREEN, int Y_SCREEN) {
     ja->shot_timer = 0;
 }
 
+
 // AUX
 //retorna 0 se não estiver em beirada
 //retorna 1 se estiver na beirada esquerda
 //retorna 2 se estiver na beirada da direita
 // Nao trata dos casos em que ele está na beirada das duas ao mesmo tempo, ou seja,
-// uma plataforma muito pequena de largura
+// uma plataforma muito pequena de largura ficaria ambíguo
 int ja_check_for_ledge(struct Jet_alone *ja, Platform **platforms, int num_platforms) {
     // Se o inimigo não está no chão, ele não pode estar na beirada (já está caindo).
-    if (!ja->is_on_ground) {
+    if (!ja->is_on_ground) 
         return 0;
-    }
+    
 
     // Ponto Y da sonda: um pixel abaixo dos pés do inimigo.
-    float probe_y = ja->y + ja->height + 1;
+    float sonda_y = ja->y + ja->height + 1;
 
     // Ponto X da sonda: depende da direção que o inimigo está se movendo.
-    float probe_x;
+    float sonda_x;
     if (ja->vx > 0) { // Movendo para a direita
         // Sonda fica um pixel à frente da borda direita do inimigo.
-        probe_x = ja->center_x + ja->hit_box_x/2 + 1;
+        sonda_x = ja->center_x + ja->hit_box_x/2 + 1;
     } else if (ja->vx < 0) { // Movendo para a esquerda
         // Sonda fica um pixel à frente da borda esquerda do inimigo.
-        probe_x = ja->center_x - ja->hit_box_x/2 - 1;
+        sonda_x = ja->center_x - ja->hit_box_x/2 - 1;
     } else {
         // Se está parado a informação que eu já tenho está certo
         if (ja->is_platform_left_edge) return 1;
@@ -311,16 +323,14 @@ int ja_check_for_ledge(struct Jet_alone *ja, Platform **platforms, int num_platf
         return 0;
     }
 
-    // Agora, verificamos se o ponto (probe_x, probe_y) está dentro de ALGUMA plataforma.
+    // Agora, verificamos se o ponto (sonda_x, sonda_y) está dentro de plataforma.
     for (int i = 0; i < num_platforms; i++) {
         Platform *p = platforms[i];
         // Checa se o ponto da sonda está dentro dos limites da plataforma atual.
-        if (probe_x >= p->x && probe_x <= (p->x + p->width) &&
-            probe_y >= p->y && probe_y <= (p->y + p->height))
-        {
-            // Encontramos chão à frente! Não é uma beirada.
-            return 0;
-        }
+        if (sonda_x >= p->x && sonda_x <= (p->x + p->width) &&
+            sonda_y >= p->y && sonda_y <= (p->y + p->height))
+
+            return 0; //se encontrou chão ele não está na beirada
     }
 
     // Se o loop terminou e não encontrou nenhuma plataforma sob a sonda,
@@ -329,6 +339,7 @@ int ja_check_for_ledge(struct Jet_alone *ja, Platform **platforms, int num_platf
     return 2;
 }
 
+//libera memória
 void ja_destroy(struct Jet_alone *ja) {
     ja_buster_destroy(ja->ja_buster);
     free(ja);

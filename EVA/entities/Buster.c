@@ -1,7 +1,7 @@
 #include "Buster.h"
 #include <stdlib.h>
 
-
+// buster do jogador
 buster_t *buster_create(float dificulty) {
     buster_t *buster = (buster_t *) malloc (sizeof(buster_t));
     if (!buster) return NULL;
@@ -11,13 +11,14 @@ buster_t *buster_create(float dificulty) {
     return buster;
 }
 
-
+// enfileira o tiro na fila encadeada
 bullet *buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, buster_t *buster, int type, int X_SCREEN, int Y_SCREEN) {
     bullet *new_bullet = bullet_create(buster->dificulty,x,y,trajectory, buster->shots, type, X_SCREEN, Y_SCREEN);
     if (!new_bullet) return NULL;
     return new_bullet;
 }
 
+// libera memória
 void buster_destroy(buster_t *buster) {
     bullet *sentinel;
     for (bullet *index = buster->shots; index != NULL; index = sentinel) {
@@ -28,8 +29,7 @@ void buster_destroy(buster_t *buster) {
 }
 
 
-
-
+// atualiza as posições do tiro 
 void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int level_width) {
 	bullet *previous = NULL;
 	for (bullet *index = buster->shots; index != NULL;) {
@@ -66,10 +66,9 @@ void update_player_bullets(float camera_x, buster_t *buster, int X_SCREEN, int l
 	}
 }
 
+//////// JA
 
-
-//ja
-
+// atualiza posições
 void update_ja_bullets(float camera_x, ja_buster_t *ja_buster, int X_SCREEN) {
 	ja_bullet *previous = NULL;
 	for (ja_bullet *index = ja_buster->shots; index != NULL;) {
@@ -102,6 +101,7 @@ void update_ja_bullets(float camera_x, ja_buster_t *ja_buster, int X_SCREEN) {
 	}
 }
 
+// cria o sentinela
 ja_buster_t *ja_buster_create(float dificulty, float speed){
 	ja_buster_t *ja_buster = (ja_buster_t*) malloc(sizeof(ja_buster_t));
 	if (!ja_buster) return NULL;
@@ -112,12 +112,14 @@ ja_buster_t *ja_buster_create(float dificulty, float speed){
 	return ja_buster;
 }
 
+// enfileira tiro
 ja_bullet* ja_buster_shot(unsigned short x, unsigned short y, unsigned char trajectory, ja_buster_t *ja_buster, int X_SCREEN, int Y_SCREEN) {
     ja_bullet *new_bullet = ja_bullet_create(ja_buster->dificulty,ja_buster->bullet_speed, x,y,trajectory, ja_buster->shots, X_SCREEN, Y_SCREEN);
     if (!new_bullet) return NULL;
     return new_bullet;
 }
 
+// libera memória
 void ja_buster_destroy(ja_buster_t *ja_buster) {
     ja_bullet *sentinel;
     for (ja_bullet *index = ja_buster->shots; index != NULL; index = sentinel) {
@@ -129,6 +131,7 @@ void ja_buster_destroy(ja_buster_t *ja_buster) {
 
 /////////////////////////////// SACHIEL
 
+// cria buster do sachiel
 sa_buster_t *sa_buster_create(float dificulty) {
     sa_buster_t *sa_buster = (sa_buster_t *) malloc(sizeof(sa_buster_t));
     if (!sa_buster) return NULL;
@@ -140,7 +143,7 @@ sa_buster_t *sa_buster_create(float dificulty) {
     return sa_buster;
 }
 
-
+// enfileira tiro
 sa_bullet *sa_buster_shot(int speed, unsigned short x, unsigned short y, unsigned char trajectory, sa_buster_t *sa_buster,int X_SCREEN, int Y_SCREEN, int type) {
     sa_bullet *new_bullet = sa_bullet_create(sa_buster->dificulty, speed, x, y, trajectory, sa_buster->shots, X_SCREEN, Y_SCREEN, type);
     if (!new_bullet) return NULL;
@@ -149,7 +152,7 @@ sa_bullet *sa_buster_shot(int speed, unsigned short x, unsigned short y, unsigne
     return new_bullet;
 }
 
-
+// libera memória
 void sa_buster_destroy(sa_buster_t *sa_buster) {
     if (!sa_buster) return;
 
@@ -161,7 +164,7 @@ void sa_buster_destroy(sa_buster_t *sa_buster) {
     free(sa_buster);
 }
 
-
+// atualiza posições
 void update_sa_bullets(float camera_x, sa_buster_t *sa_buster, int X_SCREEN, int level_width) {
     sa_bullet *previous = NULL;
     for (sa_bullet *index = sa_buster->shots; index != NULL;) {

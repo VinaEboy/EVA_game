@@ -3,6 +3,8 @@
 #include <allegro5/allegro5.h>																																												
 #include <allegro5/allegro_font.h>																																											
 #include <allegro5/allegro_primitives.h>			
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #include "Title_screen.h"
 #include "Game_state.h"
@@ -33,7 +35,18 @@ title_screen *title_screen_info_create() {
 }
 
 //carrega imagem e inicializa valores necessários para a tela inicial rodar
-void start_title_screen(game_state *state, title_screen **title_screen_info, ALLEGRO_BITMAP **title_screen_image ) {
+void start_title_screen(game_state *state, title_screen **title_screen_info, ALLEGRO_BITMAP **title_screen_image, ALLEGRO_AUDIO_STREAM **current_music) {
+    
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_destroy_audio_stream(*current_music);
+    }
+    *current_music = al_load_audio_stream("sounds/Evangelion_theme.ogg", 4, 2048); // (arquivo, buffer count, buffer size)
+    al_attach_audio_stream_to_mixer(*current_music, al_get_default_mixer());
+    al_set_audio_stream_playmode(*current_music, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(*current_music, state->sound_volume); // configura o volume do jogo 
+    
+    
     *title_screen_image = al_load_bitmap("images/backscreen/title_screen.png");
     if (!*title_screen_image) {
         fprintf(stderr, "Falha ao carregar imagem da tela principal\n");
@@ -78,9 +91,9 @@ void show_title_screen(ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *fo
 }
 
 
-///////////////////////////////////// Funções auxiliares de Title Screnn /////////////////////////////////////////////////////////////////////////
+/////////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
-
+// para baixo
 void title_screen_down_move (title_screen *title_screen_info ) {
     if(title_screen_info->new_game_selected) {
         title_screen_info->new_game_selected = 0;
@@ -100,6 +113,7 @@ void title_screen_down_move (title_screen *title_screen_info ) {
     }
 }
 
+// para cima
 void title_screen_up_move(title_screen *title_screen_info ) {
     if(title_screen_info->exit_selected ) {
         title_screen_info->exit_selected  = 0;
@@ -119,6 +133,7 @@ void title_screen_up_move(title_screen *title_screen_info ) {
     }
 }
 
+// confirmar
 void title_screen_confirm(game_state *state, title_screen *title_screen_info) {
     if (title_screen_info->exit_selected) {
         state->running = 0;
@@ -139,8 +154,11 @@ void title_screen_confirm(game_state *state, title_screen *title_screen_info) {
         title_screen_info->title_screen_exit = 1;
     }
 }
+///////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////// Auxiliares /////////////////////////////////////////
 
+// desenha texto
 void title_screen_draw_text(title_screen *title_screen_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
     long int coord_X = X_SCREEN/4;
@@ -157,7 +175,7 @@ void title_screen_draw_text(title_screen *title_screen_info, ALLEGRO_FONT *font,
 
 }
 
-
+// libera memoria
 void exit_title_screen(game_state *state, title_screen *title_screen_info, ALLEGRO_BITMAP *title_screen_image) {
     state->title_screen = 0;
     state->title_screen_started = 0;

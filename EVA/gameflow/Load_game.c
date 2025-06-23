@@ -9,6 +9,7 @@
 #include "Title_screen.h" //para a função exit
 #include "Game_over.h" //para a função exit
 
+//cria info menu
 load_game *load_game_info_create( ) {
     load_game *load_game_info = (load_game *) malloc(sizeof(load_game));
     if (!load_game_info) return NULL;
@@ -27,6 +28,9 @@ load_game *load_game_info_create( ) {
     load_game_info->timer = 0;
     load_game_info->game_loaded = 0;
 
+
+    // etapa importante: verifica os slots que tem jogo salvo
+    // o sistema de salvar jogo foi implementado escrevendo um arquivo e fazendo leitura dele
     FILE *arquivo = NULL;
     arquivo = fopen("save_data/slot_1.sav","rb");
     if (arquivo) {
@@ -72,6 +76,8 @@ load_game *load_game_info_create( ) {
     return load_game_info;
 }
 
+// Além de inicializar, carrega as informações de jogo salva dos slots para caso o jogador carregue um jogo
+// seja só substituir. Além disso, para o feedback visual de ver se o slot está vazio ou se tem algum jogo salvo com progresso
 void start_load_game (game_state *state, load_game **load_game_info, ALLEGRO_BITMAP **load_game_image, ALLEGRO_BITMAP **default_slot_image) {
     *load_game_image = al_load_bitmap("images/backscreen/save_or_load_screen.png");
     if (!*load_game_image) {
@@ -92,6 +98,7 @@ void start_load_game (game_state *state, load_game **load_game_info, ALLEGRO_BIT
     state->load_game_started = 1;
 }
 
+//mostra na tela
 void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, game_assets *assets, int X_SCREEN, int Y_SCREEN)  {
     
     ALLEGRO_BITMAP *load_game_image = assets->load_game_image;
@@ -131,10 +138,9 @@ void show_load_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
 
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// AUX
-//////////////////////////
+///////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
+// move para baixo
 void load_game_down_move (load_game *load_game_info ) {
     if (load_game_info->choose_slot_1_selected) {
         load_game_info->choose_slot_1_selected = 0;
@@ -155,6 +161,7 @@ void load_game_down_move (load_game *load_game_info ) {
     } 
 }
 
+// move pra cima
 void load_game_up_move(load_game *load_game_info ) {
     if (load_game_info->slot_1_selected && !load_game_info->return_selected) {
         load_game_info->slot_1_selected = 0;
@@ -173,6 +180,7 @@ void load_game_up_move(load_game *load_game_info ) {
     }
 }
 
+// move pra esquerda
 void load_game_left_move(load_game *load_game_info ) {
     if (load_game_info->choose_slot_1_selected) {
         load_game_info->choose_slot_1_selected = 0;
@@ -192,6 +200,7 @@ void load_game_left_move(load_game *load_game_info ) {
     }
 }
 
+// move pra direita
 void load_game_right_move(load_game *load_game_info ) {
     if (load_game_info->choose_slot_1_selected) {
         load_game_info->choose_slot_1_selected = 0;
@@ -211,6 +220,8 @@ void load_game_right_move(load_game *load_game_info ) {
     }
 }
 
+// tecla de confirmar
+// antes de carregar um jogo, verifica se não é NULL
 void load_game_confirm(game_state *state, load_game *load_game_info, ALLEGRO_BITMAP *load_game_image) {
     if (load_game_info->slot_1_selected && !load_game_info->return_selected) {
         load_game_slot(state,load_game_info, 1);
@@ -223,14 +234,17 @@ void load_game_confirm(game_state *state, load_game *load_game_info, ALLEGRO_BIT
     }
 }
 
+////////////////////////////////////////////////////////////////////////////
 
-// Lê 2 structs do arquivo: player_progress e controls
-// Como essas structs não apontam para outras structs, a implementação é simples
+/////////////////////// Auxiliares ///////////////////////////////////////
+
+// Carrega o dado salvo em si, ou seja, substitui as informações do player_progress e controles atuais
+// pelas informações do slot
 void load_game_slot(game_state *state, load_game *load_game_info, int slot) {
     if (slot == 1) {
         if (!load_game_info->player_progress_slot_1 || !load_game_info->controls_slot_1) return;
 
-        free(state->player_progress); 
+        free(state->player_progress); //precisa liberar a informação atual
         state->player_progress = malloc(sizeof(player_data));
         if (state->player_progress) 
             memcpy(state->player_progress, load_game_info->player_progress_slot_1, sizeof(player_data));
@@ -276,7 +290,7 @@ void load_game_slot(game_state *state, load_game *load_game_info, int slot) {
 }
 
 
-
+//desenha o texto
 void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_game_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
     int default_slot_width = al_get_bitmap_width(default_slot_image);
     int default_slot_height = al_get_bitmap_height(default_slot_image);
@@ -352,11 +366,11 @@ void load_game_draw_text(ALLEGRO_BITMAP *default_slot_image, load_game *load_gam
     }
 
 
-    if (load_game_info->timer == 30)
+    if (load_game_info->timer == 30) //para piscar
         load_game_info->timer = 0;
 } 
 
-
+// sai do load game liberando memória
 void exit_load_game(game_state *state, game_assets *assets) {
     
     load_game *load_game_info = assets->load_game_info;
@@ -383,9 +397,9 @@ void exit_load_game(game_state *state, game_assets *assets) {
 }
 
 
-
 ///////////////////////// AUXILIARES PARA PEGAR STRINGS PARA ESCREVER /////////////////
 
+// Transforma o progresso das fases em uma string da forma "Progress: X/8"
 const char* get_progress_string(struct player_data *progress) {
     static char progress_buffer[30];
 
@@ -407,7 +421,7 @@ const char* get_progress_string(struct player_data *progress) {
     return progress_buffer;
 }
 
-
+// Transforma o tempo de jogo em uma string da forma "Playtime: XhY"
 const char* get_time_string(struct player_data *progress) {
 
     static char time_buffer[30];

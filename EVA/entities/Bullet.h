@@ -1,6 +1,11 @@
 #ifndef __BULLET__
 #define __BULLET__
 
+// Implementação dos tiros, análogo aos do vídeo do ALLEGRO
+// são os "nós" da fila encadeada em que o Buster é o sentinela
+
+// BULLETS do PLAYER
+
 #define BULLET_1_ANIMATION_SPEED 1
 #define BULLET_1_FRAMES 9
 #define BULLET_1_DAMAGE 8
@@ -19,6 +24,7 @@
 struct Player;
 struct entities_sprites;
 
+// bullet do player
 typedef struct bullet {		
 	int height;
 	int width;			
@@ -40,11 +46,16 @@ typedef struct bullet {
 } bullet;
 
 
+// cria a bala do jogador
 bullet *bullet_create(float dificulty, unsigned short x, unsigned short y,int trajectory, bullet *next, int type, int X_SCREEN, int Y_SCREEN);																								
+
+// libera memoria
 void bullet_destroy(bullet *element);	
+
+// altera o valor de qual sprite é do jogador
 void bullet_sprite (bullet *shot, ALLEGRO_BITMAP **sprite_sheet, struct entities_sprites *sprites );
 
-//ja
+//////////////////////////////// BULLETS do JA
 
 #define JA_BULLET_ANIMATION_SPEED 4
 #define JA_BULLET_DAMAGE 16
@@ -66,11 +77,13 @@ typedef struct ja_bullet {
 	float damage;	
 } ja_bullet;
 
+//cria a bullet do ja
 ja_bullet* ja_bullet_create(float dificulty, float speed, unsigned short x, unsigned short y, int trajectory, ja_bullet *next, int X_SCREEN, int Y_SCREEN);
 
+//libera memória
 void ja_bullet_destroy(ja_bullet *element);
 
-////////////////////// Sachiel
+////////////////////// Bullets do Sachiel
 
 #define SA_BULLET_ANIMATION_SPEED 2
 #define SA_BULLET_DAMAGE 20
@@ -92,7 +105,10 @@ typedef struct sa_bullet {
 	float damage;	
 } sa_bullet;
 
-
+//a diferença do tipo 1 ,2 e 3 é só o comprimento e velocidade
+// cria a bala do chefão da 1 fase, o Sachiel
 sa_bullet* sa_bullet_create(float dificulty, float speed, unsigned short x, unsigned short y, int trajectory, sa_bullet *next, int X_SCREEN, int Y_SCREEN, int type);
+
+// libera memória
 void sa_bullet_destroy(sa_bullet *element);
 #endif

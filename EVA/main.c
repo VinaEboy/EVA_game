@@ -8,6 +8,9 @@
 #include "mechanics/Joystick.h"
 #include <stdlib.h>
 #include <time.h> //para usar no srand
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
+
 
 void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_TIMER *timer, ALLEGRO_EVENT_QUEUE *queue, game_assets *assets ) {
 	if(state) game_state_destroy(state);
@@ -15,7 +18,15 @@ void destroy(game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEG
 	if(disp) al_destroy_display(disp);																																												
 	if(timer) al_destroy_timer(timer);																																												
 	if(queue) al_destroy_event_queue(queue);	
-	if(assets) game_assets_destroy(assets);																																																																																					
+	if(assets) game_assets_destroy(assets);		
+	
+	al_uninstall_mouse();
+    al_uninstall_keyboard();
+    al_shutdown_ttf_addon();
+    al_shutdown_font_addon();
+    al_shutdown_primitives_addon();
+    al_shutdown_image_addon();
+    al_uninstall_audio(); 
 }
 
 
@@ -26,6 +37,10 @@ int main(){
 	al_install_keyboard();
 	al_init_font_addon();      // necessário para qualquer tipo de fonte
 	al_init_ttf_addon();       // necessário para fontes .ttf																																													
+    al_install_audio() ;
+    al_init_acodec_addon();
+    al_reserve_samples(8) ;
+
 
 	srand(time(NULL)); //inicia a aleatoriedade do jogo
 	ALLEGRO_TIMER *timer = al_create_timer(1.0 / 30.0);																																						
@@ -41,6 +56,8 @@ int main(){
 	al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW);
 	ALLEGRO_DISPLAY *disp = al_create_display(X_SCREEN, Y_SCREEN);																																			
 
+	al_install_mouse();
+	al_hide_mouse_cursor(disp); // para esconder o mouse porque não vai ser usado
 
 	al_register_event_source(queue, al_get_keyboard_event_source());																																		
 	al_register_event_source(queue, al_get_display_event_source(disp));																																		
@@ -67,7 +84,7 @@ int main(){
 			if (!state->options_started) 
 				start_options(state, &assets->options_info);
 
-			show_options(&event,state,font,disp,assets->options_info,X_SCREEN,Y_SCREEN);
+			show_options(&event,state,font,disp,assets,X_SCREEN,Y_SCREEN);
 		}
 
 		else if (state->pause) {
@@ -93,35 +110,35 @@ int main(){
 
 		else if (state->title_screen) {
 			if (!state->title_screen_started) 
-				start_title_screen(state,&assets->title_screen_info,&assets->title_screen_image);
+				start_title_screen(state,&assets->title_screen_info,&assets->title_screen_image, &assets->current_music);
 			
 			show_title_screen(&event, state, font, disp, assets->title_screen_image,assets->title_screen_info, X_SCREEN, Y_SCREEN);
 		}
 
 		else if (state->level_select) {
 			if (!state->level_select_started)
-				start_level_select(state, &assets->level_select_info, &assets->level_select_image);
+				start_level_select(state, &assets->level_select_info, &assets->level_select_image, &assets->current_music);
 
-			show_level_select(&event, state, font, disp, assets->level_select_image, assets->level_select_info, X_SCREEN, Y_SCREEN);
+			show_level_select(&event, state, font, disp, assets->level_select_image, assets->level_select_info, X_SCREEN, Y_SCREEN, &assets->current_music);
 		}
 
 		else if (state->game_over) {
 			if (!state->game_over_started)
-				start_game_over(state, &assets->game_over_info, &assets->game_over_image);
+				start_game_over(state, &assets->game_over_info, &assets->game_over_image, &assets->current_music);
 
 			show_game_over (&event,state,font, disp, assets, X_SCREEN, Y_SCREEN );
 		}
 
 		else if (state->game_end) {
 			if (!state->game_end_started)
-				start_game_end(state, &assets->game_end_info, &assets->game_end_image);
+				start_game_end(state, &assets->game_end_info, &assets->game_end_image, &assets->current_music);
 
 			show_game_end(&event,state,font,disp,assets,X_SCREEN,Y_SCREEN);
 		}
 
 		else if (state->level_1) {
 			if (!state->level_1_started)
-				start_level_1(state, &assets->level_1_info, assets->sprites, X_SCREEN, Y_SCREEN, state->checkpoint);
+				start_level_1(state, &assets->level_1_info, assets->sprites, X_SCREEN, Y_SCREEN, state->checkpoint, &assets->current_music);
 
 			joystick_handle(&event,state,assets->level_1_info->player, X_SCREEN, Y_SCREEN);
 
@@ -225,7 +242,6 @@ int main(){
         }
 
 	}
-
 
 	destroy(state,font,disp,timer,queue,assets);
 	return 0;

@@ -7,6 +7,7 @@
 #include <allegro5/allegro_primitives.h>	
 #include "Game_state.h"
 
+// cria info
 save_game *save_game_info_create( ) {
     save_game *save_game_info = (save_game *) malloc(sizeof(save_game));
     if (!save_game_info) return NULL;
@@ -55,6 +56,7 @@ save_game *save_game_info_create( ) {
     return save_game_info;
 }
 
+// inicializa
 void start_save_game (game_state *state, save_game **save_game_info, ALLEGRO_BITMAP **save_game_image, ALLEGRO_BITMAP **default_slot_image) {
     *save_game_image = al_load_bitmap("images/backscreen/save_or_load_screen.png");
     if (!*save_game_image) {
@@ -75,6 +77,7 @@ void start_save_game (game_state *state, save_game **save_game_info, ALLEGRO_BIT
     state->save_game_started = 1;
 }
 
+// mostra na tela
 void show_save_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, ALLEGRO_BITMAP *save_game_image, ALLEGRO_BITMAP *default_slot_image,
                         save_game *save_game_info, int X_SCREEN, int Y_SCREEN)  {
     
@@ -111,10 +114,9 @@ void show_save_game (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font
 
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// AUX
-//////////////////////////
+/////////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
+// para baixo
 void save_game_down_move (save_game *save_game_info ) {
     if (save_game_info->choose_slot_1_selected) {
         save_game_info->choose_slot_1_selected = 0;
@@ -135,6 +137,7 @@ void save_game_down_move (save_game *save_game_info ) {
     } 
 }
 
+// para cima
 void save_game_up_move(save_game *save_game_info ) {
     if (save_game_info->slot_1_selected && !save_game_info->return_to_stage_select_selected) {
         save_game_info->slot_1_selected = 0;
@@ -153,6 +156,7 @@ void save_game_up_move(save_game *save_game_info ) {
     }
 }
 
+// para esquerda
 void save_game_left_move(save_game *save_game_info ) {
     if (save_game_info->choose_slot_1_selected) {
         save_game_info->choose_slot_1_selected = 0;
@@ -172,6 +176,7 @@ void save_game_left_move(save_game *save_game_info ) {
     }
 }
 
+// para direita
 void save_game_right_move(save_game *save_game_info ) {
     if (save_game_info->choose_slot_1_selected) {
         save_game_info->choose_slot_1_selected = 0;
@@ -191,6 +196,7 @@ void save_game_right_move(save_game *save_game_info ) {
     }
 }
 
+// confirmar
 void save_game_confirm(game_state *state, save_game *save_game_info, ALLEGRO_BITMAP *save_game_image) {
     if (save_game_info->slot_1_selected && !save_game_info->return_to_stage_select_selected) {
         save_game_slot(state, save_game_info, 1);
@@ -202,10 +208,11 @@ void save_game_confirm(game_state *state, save_game *save_game_info, ALLEGRO_BIT
         save_game_info->return_to_stage_select = 1;
     }
 }
+///////////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////// Auxiliares /////////////////////////////////////////
 
-//salva 2 structs no arquivo: player_progress e controls
-//como essas structs não apontam para outras structs, a implementação é de boa
+// escreve o arquivo binário com o progresso e mapeamento de teclas do jogador, atualiza que aquele slot agora não tem info NULL
 void save_game_slot(game_state *state, save_game *save_game_info, int slot) {
     FILE *arquivo;
     if (slot == 1) 
@@ -241,7 +248,7 @@ void save_game_slot(game_state *state, save_game *save_game_info, int slot) {
 }
 
 
-
+// desenha o texto
 void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_game_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
     int default_slot_width = al_get_bitmap_width(default_slot_image);
     int default_slot_height = al_get_bitmap_height(default_slot_image);
@@ -323,6 +330,7 @@ void save_game_draw_text(ALLEGRO_BITMAP *default_slot_image, save_game *save_gam
         save_game_info->timer = 0;
 } 
 
+// libera memoria
 void exit_save_game(game_state *state, save_game *save_game_info,ALLEGRO_BITMAP *save_game_image) {
     state->save_game = 0;
     state->save_game_started = 0;

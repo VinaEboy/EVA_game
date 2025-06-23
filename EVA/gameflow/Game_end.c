@@ -8,6 +8,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <string.h>
 
+//cria o default do game_end_info
 game_end *game_end_info_create() {
     game_end *game_end_info = (game_end *) malloc(sizeof(game_end));
     if (!game_end_info) {
@@ -24,7 +25,18 @@ game_end *game_end_info_create() {
     return game_end_info;
 }
 
-void start_game_end (game_state *state, game_end **game_end_info, ALLEGRO_BITMAP **game_end_image) {
+// carrega as imagens e cria struct info
+void start_game_end (game_state *state, game_end **game_end_info, ALLEGRO_BITMAP **game_end_image, ALLEGRO_AUDIO_STREAM **current_music) {
+    if (*current_music) {
+        al_set_audio_stream_playing(*current_music, false);
+        al_destroy_audio_stream(*current_music);
+    }
+    *current_music = al_load_audio_stream("sounds/Game_end_theme.ogg", 4, 2048); // (arquivo, buffer count, buffer size)
+    al_attach_audio_stream_to_mixer(*current_music, al_get_default_mixer());
+    al_set_audio_stream_playmode(*current_music, ALLEGRO_PLAYMODE_LOOP);
+    al_set_audio_stream_gain(*current_music, state->sound_volume); // configura o volume do jogo
+    
+
     *game_end_image = al_load_bitmap("images/backscreen/game_end_screen.png");
     if (!*game_end_image) {
         fprintf(stderr, "Falha ao carregar imagem do game_end\n");
@@ -39,6 +51,7 @@ void start_game_end (game_state *state, game_end **game_end_info, ALLEGRO_BITMAP
     state->game_end_started = 1;
 }
 
+//mostra no display a imagem assim como escreve texto
 void show_game_end (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font, ALLEGRO_DISPLAY *disp, game_assets *assets, int X_SCREEN, int Y_SCREEN) {
 
     ALLEGRO_BITMAP *game_end_image = assets->game_end_image;
@@ -71,8 +84,9 @@ void show_game_end (ALLEGRO_EVENT *event, game_state *state, ALLEGRO_FONT *font,
     
 }
 
-///////////////////////////////////// Funções auxiliares do Game end /////////////////////////////////////////////////////////////////////////
+///////////////////// FUNÇÕES DE INTERAÇÕES NO MENU ////////////////////////
 
+//mover para baixo no menu
 void game_end_down_move(game_end *game_end_info) {
     if (game_end_info->Return_to_stage_select_selected) {
         game_end_info->Return_to_stage_select_selected = 0;
@@ -82,6 +96,7 @@ void game_end_down_move(game_end *game_end_info) {
     }
 }
 
+//mover para cima no menu
 void game_end_up_move(game_end *game_end_info) {
     if (game_end_info->Back_to_title_screen_selected) {
         game_end_info->Back_to_title_screen_selected = 0;
@@ -91,6 +106,7 @@ void game_end_up_move(game_end *game_end_info) {
     }
 }
 
+//clicando em pressionar no menu
 void game_end_confirm(game_state *state,game_end *game_end_info) {
     state->checkpoint = 0; //reseta os checkpoints
     if (game_end_info->Return_to_stage_select_selected) {
@@ -101,7 +117,9 @@ void game_end_confirm(game_state *state,game_end *game_end_info) {
         game_end_info->game_end_exit = 1;
     } 
 }
+/////////////////////////////////////////////////////////////
 
+// Função auxiliar para desenhar o texto no menu
 void game_end_draw_text(game_end *game_end_info, ALLEGRO_FONT *font, int X_SCREEN, int Y_SCREEN) {
 
     long int coord_X = X_SCREEN/2;
@@ -118,6 +136,7 @@ void game_end_draw_text(game_end *game_end_info, ALLEGRO_FONT *font, int X_SCREE
 
 }
 
+// Sai da etapa do jogo, liberando memória alocada
 void exit_game_end(game_state *state,game_end *game_end_info, ALLEGRO_BITMAP *game_end_image) {
     state->game_end_started = 0;
     state->game_end = 0;
