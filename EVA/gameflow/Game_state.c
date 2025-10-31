@@ -12,7 +12,7 @@ player_data *create_player_progress() {
         return NULL;
     }
     player_progress->Lifes = 3;
-    player_progress->dificulty = DIFFICULTY_MEDIUM; //o default é dificuldade média
+    player_progress->dificulty = DIFFICULTY_EASY; //DIFFICULTY_MEDIUM; //o default é dificuldade média
     player_progress->Level_1_completed = 0;
     player_progress->Level_2_completed = 0;
     player_progress->Level_3_completed = 0;

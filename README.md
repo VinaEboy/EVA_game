@@ -14,6 +14,10 @@ Este projeto implementa um jogo com física, plataformas e mecânica de atirar, 
 
 O nome do jogo é Evangelion Versus Angels: EVA. A temática do jogo é inspirado no anime Neon Genesis Evangelion, que conta a história de colegiais que lutam contra entidades desconhecidas (chamadas de Anjos) em um mecha robótico (chamada de EVAs).
 
+## Gameplay do Jogo
+
+![ Gameplay do Jogo em gif](gameplay/gameplay.gif)
+
 ## Sessão: Funcionamento do Main
 
 Além de carregar e inicializar variáveis do Allegro, a main é responsável por cuidar de qual etapa o jogo está rodando. O dado game_state nos informa em qual parte o jogador está: se é na tela principal, no menu de opções, em algum level...

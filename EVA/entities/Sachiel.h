@@ -15,7 +15,7 @@
 #define INVENCIBLE_TIME 20
 #define SA_ARM_UP_TIME 25
 #define FIRE_TIME 40
-#define POSITION_TIME 400
+#define POSITION_TIME 270
 #define SHOT_UP_PROBABILITY 0.5
 #define MINOR_ANIMATION 10
 #define SACHIEL_DEATH_TIME 60 //o tempo que o jogo vai ficar rodando depois do chefão ser derrotado
